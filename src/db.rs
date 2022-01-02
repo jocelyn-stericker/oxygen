@@ -1,4 +1,5 @@
 use crate::audio_clip::AudioClip;
+use crate::internal_encoding::{decode_v0, decode_v1, encode_v1};
 use chrono::prelude::*;
 use color_eyre::Result;
 use rusqlite::{params, types::Type, Connection};
@@ -10,54 +11,83 @@ pub struct ClipMeta {
     pub name: String,
     pub date: DateTime<Utc>,
 }
-
-fn encode(samples: &[f32]) -> Vec<u8> {
-    let mut data = Vec::with_capacity(samples.len() * 4);
-    for sample in samples {
-        data.extend_from_slice(&sample.to_be_bytes());
-    }
-    data
-}
-
-fn decode(bytes: &[u8]) -> Vec<f32> {
-    let mut samples = Vec::with_capacity(bytes.len() / 4);
-    for chunk in bytes.chunks(4) {
-        samples.push(f32::from_be_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]));
-    }
-    samples
-}
-
 impl Db {
     pub fn open() -> Result<Db> {
         let connection = Connection::open("oxygen.sqlite")?;
+        let user_version: u32 =
+            connection.query_row("SELECT user_version FROM pragma_user_version", [], |r| {
+                r.get(0)
+            })?;
         connection.pragma_update(None, "page_size", 8192)?;
-        connection.pragma_update(None, "user_version", 1)?;
+        connection.pragma_update(None, "user_version", 2)?;
 
-        connection.execute(
-            "
-            CREATE TABLE IF NOT EXISTS clips (
-              id INTEGER PRIMARY KEY,
-              name TEXT NOT NULL UNIQUE,
-              date TEXT NOT NULL,
-              sample_rate INTEGER NOT NULL,
-              samples BLOB NOT NULL
-            );
-            ",
-            [],
-        )?;
+        if user_version < 1 {
+            eprintln!("Init schema...");
+            connection.execute(
+                "
+                CREATE TABLE IF NOT EXISTS clips (
+                  id INTEGER PRIMARY KEY,
+                  name TEXT NOT NULL UNIQUE,
+                  date TEXT NOT NULL,
+                  sample_rate INTEGER NOT NULL,
+                  samples BLOB NOT NULL
+                );
+                ",
+                [],
+            )?;
+        }
+
+        if user_version < 2 {
+            eprintln!("Updating schema...");
+            let mut stmt =
+                connection.prepare("SELECT id, name, date, sample_rate, samples FROM clips")?;
+            let clip_iter = stmt.query_map([], |row| {
+                let date: String = row.get(2)?;
+                let samples: Vec<u8> = row.get(4)?;
+
+                Ok(AudioClip {
+                    id: Some(row.get(0)?),
+                    name: row.get(1)?,
+                    date: date.parse().map_err(|_| {
+                        rusqlite::Error::InvalidColumnType(2, "date".to_string(), Type::Text)
+                    })?,
+                    sample_rate: row.get(3)?,
+                    samples: decode_v0(&samples),
+                })
+            })?;
+
+            let clips: Vec<_> = clip_iter.collect::<Result<_, rusqlite::Error>>()?;
+            for clip in &clips {
+                let (sr, bytes) = encode_v1(clip)?;
+                connection.execute(
+                    "INSERT OR REPLACE INTO clips (id, name, date, sample_rate, samples) VALUES (?1, ?2, ?3, ?4, ?5)",
+                    params![
+                        clip.id,
+                        clip.name,
+                        clip.date.to_string(),
+                        sr,
+                        bytes,
+                    ],
+                )?;
+            }
+
+            connection.execute("ALTER TABLE clips RENAME COLUMN samples TO opus", [])?;
+        }
 
         Ok(Db(connection))
     }
 
     pub fn save(&self, clip: &mut AudioClip) -> Result<()> {
+        let (sr, bytes) = encode_v1(clip)?;
+
         self.0.execute(
-            "INSERT OR REPLACE INTO clips (id, name, date, sample_rate, samples) VALUES (?1, ?2, ?3, ?4, ?5)",
+            "INSERT OR REPLACE INTO clips (id, name, date, sample_rate, opus) VALUES (?1, ?2, ?3, ?4, ?5)",
             params![
                 clip.id,
                 clip.name,
                 clip.date.to_string(),
-                clip.sample_rate,
-                encode(&clip.samples),
+                sr,
+                bytes,
             ],
         )?;
 
@@ -71,10 +101,15 @@ impl Db {
     pub fn load(&self, name: &str) -> Result<Option<AudioClip>> {
         let mut stmt = self
             .0
-            .prepare("SELECT id, name, date, sample_rate, samples FROM clips WHERE name = ?1")?;
+            .prepare("SELECT id, name, date, sample_rate, opus FROM clips WHERE name = ?1")?;
         let mut clip_iter = stmt.query_map([name], |row| {
             let date: String = row.get(2)?;
-            let samples: Vec<u8> = row.get(4)?;
+            let bytes: Vec<u8> = row.get(4)?;
+            let sample_rate: u32 =  row.get(3)?;
+            let samples = decode_v1(sample_rate, &bytes)
+                    .map_err(|_| {
+                    rusqlite::Error::InvalidColumnType(3, "opus".to_string(), Type::Blob)
+                })?;
 
             Ok(AudioClip {
                 id: Some(row.get(0)?),
@@ -82,8 +117,8 @@ impl Db {
                 date: date.parse().map_err(|_| {
                     rusqlite::Error::InvalidColumnType(2, "date".to_string(), Type::Text)
                 })?,
-                sample_rate: row.get(3)?,
-                samples: decode(&samples),
+                sample_rate,
+                samples,
             })
         })?;
 

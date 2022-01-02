@@ -1,5 +1,6 @@
 mod audio_clip;
 mod db;
+mod internal_encoding;
 
 use audio_clip::AudioClip;
 use chrono::prelude::*;

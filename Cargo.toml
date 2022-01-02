@@ -13,3 +13,5 @@ dasp = {version = "0.11.0", features = ["signal", "interpolate", "interpolate-li
 rusqlite = "0.26.3"
 chrono = "0.4.19"
 ctrlc = "3.2.1"
+audiopus = "0.3.0-rc.0"
+
