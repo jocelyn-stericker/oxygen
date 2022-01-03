@@ -1,11 +1,20 @@
 use chrono::prelude::*;
-use std::sync::mpsc::Sender;
-use std::sync::mpsc::channel;
 use color_eyre::eyre::{eyre, Result};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use dasp::{interpolate::linear::Linear, signal, Signal};
+use std::fs::File;
+use std::path::Path;
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Sender;
 use std::sync::Arc;
 use std::sync::Mutex;
+use symphonia::core::audio::SampleBuffer;
+use symphonia::core::codecs::DecoderOptions;
+use symphonia::core::errors::Error;
+use symphonia::core::formats::FormatOptions;
+use symphonia::core::io::MediaSourceStream;
+use symphonia::core::meta::MetadataOptions;
+use symphonia::core::probe::Hint;
 
 /// Raw mono audio data.
 #[derive(Clone)]
@@ -103,7 +112,7 @@ impl AudioClip {
 
         let (tx, rx) = channel();
         ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))?;
-    
+
         println!("Waiting for Ctrl-C...");
         rx.recv()?;
         println!("Got it! Exiting...");
@@ -112,6 +121,129 @@ impl AudioClip {
         let clip = clip.lock().unwrap().take().unwrap();
 
         eprintln!("Recorded {} samples", clip.samples.len());
+        Ok(clip)
+    }
+
+    pub fn import(name: String, path: String) -> Result<AudioClip> {
+        // Create a media source. Note that the MediaSource trait is automatically implemented for File,
+        // among other types.
+        let file = Box::new(File::open(Path::new(&path))?);
+
+        let creation_time = file.metadata()?.created()?;
+
+        // Create the media source stream using the boxed media source from above.
+        let mss = MediaSourceStream::new(file, Default::default());
+
+        // Create a hint to help the format registry guess what format reader is appropriate. In this
+        // example we'll leave it empty.
+        let hint = Hint::new();
+
+        // Use the default options when reading and decoding.
+        let format_opts: FormatOptions = Default::default();
+        let metadata_opts: MetadataOptions = Default::default();
+        let decoder_opts: DecoderOptions = Default::default();
+
+        // Probe the media source stream for a format.
+        let probed =
+            symphonia::default::get_probe().format(&hint, mss, &format_opts, &metadata_opts)?;
+
+        // Get the format reader yielded by the probe operation.
+        let mut format = probed.format;
+
+        // Get the default track.
+        let track = format
+            .default_track()
+            .ok_or_else(|| eyre!("No default track"))?;
+
+        // Create a decoder for the track.
+        let mut decoder =
+            symphonia::default::get_codecs().make(&track.codec_params, &decoder_opts)?;
+
+        // Store the track identifier, we'll use it to filter packets.
+        let track_id = track.id;
+
+        let mut sample_count = 0;
+        let mut sample_buf = None;
+        let channels = track
+            .codec_params
+            .channels
+            .ok_or_else(|| eyre!("Unknown channel count"))?;
+
+        let mut clip = AudioClip {
+            id: None,
+            name,
+            date: DateTime::<Utc>::from(creation_time),
+            samples: Vec::new(),
+            sample_rate: track
+                .codec_params
+                .sample_rate
+                .ok_or_else(|| eyre!("Unknown sample rate"))?,
+        };
+
+        loop {
+            // Get the next packet from the format reader.
+            let packet = match format.next_packet() {
+                Ok(packet_ok) => packet_ok,
+                Err(Error::IoError(ref packet_err))
+                    if packet_err.kind() == std::io::ErrorKind::UnexpectedEof =>
+                {
+                    break;
+                }
+                Err(packet_err) => {
+                    return Err(packet_err.into());
+                }
+            };
+
+            // If the packet does not belong to the selected track, skip it.
+            if packet.track_id() != track_id {
+                continue;
+            }
+
+            // Decode the packet into audio samples, ignoring any decode errors.
+            match decoder.decode(&packet) {
+                Ok(audio_buf) => {
+                    // The decoded audio samples may now be accessed via the audio buffer if per-channel
+                    // slices of samples in their native decoded format is desired. Use-cases where
+                    // the samples need to be accessed in an interleaved order or converted into
+                    // another sample format, or a byte buffer is required, are covered by copying the
+                    // audio buffer into a sample buffer or raw sample buffer, respectively. In the
+                    // example below, we will copy the audio buffer into a sample buffer in an
+                    // interleaved order while also converting to a f32 sample format.
+
+                    // If this is the *first* decoded packet, create a sample buffer matching the
+                    // decoded audio buffer format.
+                    if sample_buf.is_none() {
+                        // Get the audio buffer specification.
+                        let spec = *audio_buf.spec();
+
+                        // Get the capacity of the decoded buffer. Note: This is capacity, not length!
+                        let duration = audio_buf.capacity() as u64;
+
+                        // Create the f32 sample buffer.
+                        sample_buf = Some(SampleBuffer::<f32>::new(duration, spec));
+                    }
+
+                    // Copy the decoded audio buffer into the sample buffer in an interleaved format.
+                    if let Some(buf) = &mut sample_buf {
+                        buf.copy_interleaved_ref(audio_buf);
+                        let mono: Vec<f32> = buf
+                            .samples()
+                            .iter()
+                            .step_by(channels.count())
+                            .copied()
+                            .collect();
+                        clip.samples.extend_from_slice(&mono);
+
+                        // The samples may now be access via the `samples()` function.
+                        sample_count += buf.samples().len();
+                        print!("\rDecoded {} samples", sample_count);
+                    }
+                }
+                Err(Error::DecodeError(_)) => (),
+                Err(_) => break,
+            }
+        }
+
         Ok(clip)
     }
 
@@ -148,10 +280,8 @@ impl AudioClip {
                         }
                         *i += 1;
                     }
-                    if *i >= clip_samples.len() {
-                        if let Err(_) = done.send(()) {
-                            // Playback has already stopped. We'll be dead soon.
-                        }
+                    if *i >= clip_samples.len() && done.send(()).is_err() {
+                        // Playback has already stopped. We'll be dead soon.
                     }
                 }
             }

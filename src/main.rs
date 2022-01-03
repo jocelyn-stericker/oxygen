@@ -5,7 +5,7 @@ mod internal_encoding;
 use audio_clip::AudioClip;
 use chrono::prelude::*;
 use clap::{AppSettings, Parser, Subcommand};
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{eyre, Result};
 use db::Db;
 
 #[derive(Parser, Debug)]
@@ -40,6 +40,15 @@ enum Commands {
         /// The name of the clip to delete.
         name: String,
     },
+    /// Import the clip at the given path. If a name is not specified, the clip will be
+    /// named after the path.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    Import {
+        /// The path to import.
+        path: String,
+        /// The name of the clip to import.
+        name: Option<String>,
+    },
 }
 
 fn main() -> Result<()> {
@@ -50,6 +59,9 @@ fn main() -> Result<()> {
     match args.command {
         Commands::Record { name } => {
             let name = name.unwrap_or_else(|| Local::now().format("%Y-%m-%d %H:%M:%S").to_string());
+            if db.load(&name)?.is_some() {
+                return Err(eyre!("There is already a clip named {}", name));
+            }
             let mut clip = AudioClip::record(name)?;
             db.save(&mut clip)?;
         }
@@ -77,6 +89,14 @@ fn main() -> Result<()> {
         }
         Commands::Delete { name } => {
             db.delete(&name)?;
+        }
+        Commands::Import { name, path } => {
+            let name = name.unwrap_or_else(|| path.clone());
+            if db.load(&name)?.is_some() {
+                return Err(eyre!("There is already a clip named {}", name));
+            }
+            let mut clip = AudioClip::import(name, path)?;
+            db.save(&mut clip)?;
         }
     }
 

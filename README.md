@@ -57,6 +57,10 @@ cargo run -- play name
 
 cargo run -- delete name
   Delete the clip with the given name
+
+cargo run -- import path [name]
+  Import the clip at the given path. If a name is not specified, the clip will be
+  named after the path.
 ```
 
 ## Contributing
