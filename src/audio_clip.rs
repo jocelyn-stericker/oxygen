@@ -311,4 +311,26 @@ impl AudioClip {
 
         Ok(())
     }
+
+    pub fn export(&self, path: &str) -> Result<()> {
+        if !path.ends_with(".wav") {
+            return Err(eyre!("Expected {} to end in .wav", path));
+        }
+
+        let spec = hound::WavSpec {
+            channels: 1,
+            sample_rate: self.sample_rate,
+            bits_per_sample: 32,
+            sample_format: hound::SampleFormat::Float,
+        };
+
+        let mut writer = hound::WavWriter::create(path, spec)?;
+        for sample in &self.samples {
+            writer.write_sample(*sample)?;
+        }
+
+        writer.finalize()?;
+
+        Ok(())
+    }
 }

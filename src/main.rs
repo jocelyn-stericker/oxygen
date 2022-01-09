@@ -2,6 +2,8 @@ mod audio_clip;
 mod db;
 mod internal_encoding;
 
+use std::{ffi::OsStr, path::Path};
+
 use audio_clip::AudioClip;
 use chrono::prelude::*;
 use clap::{AppSettings, Parser, Subcommand};
@@ -49,6 +51,17 @@ enum Commands {
         /// The name of the clip to import.
         name: Option<String>,
     },
+    /// Export the clip with the given name to the given path, as a wav file.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    Export {
+        /// The name of the clip to export.
+        name: String,
+        /// The path to export to, ending in ".wav".
+        path: String,
+    },
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    /// Export all clips to the given folder.
+    ExportAll { folder: String },
 }
 
 fn main() -> Result<()> {
@@ -84,19 +97,65 @@ fn main() -> Result<()> {
             if let Some(clip) = db.load(&name)? {
                 clip.play()?
             } else {
-                eprintln!("No such clip.");
+                return Err(eyre!("No such clip."));
             }
         }
         Commands::Delete { name } => {
             db.delete(&name)?;
         }
         Commands::Import { name, path } => {
-            let name = name.unwrap_or_else(|| path.clone());
+            let name = match name {
+                Some(name) => name,
+                None => Path::new(&path)
+                    .file_stem()
+                    .ok_or_else(|| eyre!("Invalid path: {}", path))?
+                    .to_str()
+                    .ok_or_else(|| eyre!("Path is not utf8"))?
+                    .to_string(),
+            };
             if db.load(&name)?.is_some() {
                 return Err(eyre!("There is already a clip named {}", name));
             }
             let mut clip = AudioClip::import(name, path)?;
             db.save(&mut clip)?;
+        }
+        Commands::Export { name, path } => {
+            if let Some(clip) = db.load(&name)? {
+                clip.export(&path)?
+            } else {
+                return Err(eyre!("No such clip."));
+            }
+        }
+        Commands::ExportAll { folder } => {
+            let path = Path::new(&folder);
+            if !path.exists() {
+                std::fs::create_dir(path)?;
+            }
+            let mut children = path.read_dir()?;
+            if children.next().is_some() {
+                return Err(eyre!("Expected {} to be empty.", folder));
+            }
+
+            for entry in db.list()? {
+                if let Some(clip) = db.load(&entry.name)? {
+                    let safe_name = Path::new(&entry.name)
+                        .file_name()
+                        .unwrap_or_else(|| OsStr::new("invalid"))
+                        .to_str()
+                        .ok_or_else(|| eyre!("Path is not valid utf8"))?
+                        .to_string();
+                    let export_path =
+                        path.join(Path::new(&format!("{}_{}.wav", entry.id, safe_name)));
+                    let export_path = export_path
+                        .to_str()
+                        .ok_or_else(|| eyre!("Path is not utf8"))?;
+                    clip.export(export_path)?;
+                } else {
+                    return Err(eyre!("{} was removed during export.", entry.name));
+                }
+            }
+
+            eprintln!("{}", folder);
         }
     }
 

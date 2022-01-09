@@ -61,6 +61,13 @@ cargo run -- delete name
 cargo run -- import path [name]
   Import the clip at the given path. If a name is not specified, the clip will be
   named after the path.
+
+cargo run -- export name path
+  Export the clip with the given name to the given path.
+  The path should end in ".wav".
+
+cargo run -- export-all folder
+  Export all clips to the given folder.
 ```
 
 ## Contributing
