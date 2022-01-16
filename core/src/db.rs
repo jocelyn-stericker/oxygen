@@ -105,11 +105,40 @@ impl Db {
         let mut clip_iter = stmt.query_map([name], |row| {
             let date: String = row.get(2)?;
             let bytes: Vec<u8> = row.get(4)?;
-            let sample_rate: u32 =  row.get(3)?;
-            let samples = decode_v1(sample_rate, &bytes)
-                    .map_err(|_| {
-                    rusqlite::Error::InvalidColumnType(3, "opus".to_string(), Type::Blob)
-                })?;
+            let sample_rate: u32 = row.get(3)?;
+            let samples = decode_v1(sample_rate, &bytes).map_err(|_| {
+                rusqlite::Error::InvalidColumnType(3, "opus".to_string(), Type::Blob)
+            })?;
+
+            Ok(AudioClip {
+                id: Some(row.get(0)?),
+                name: row.get(1)?,
+                date: date.parse().map_err(|_| {
+                    rusqlite::Error::InvalidColumnType(2, "date".to_string(), Type::Text)
+                })?,
+                sample_rate,
+                samples,
+            })
+        })?;
+
+        Ok(if let Some(clip) = clip_iter.next() {
+            Some(clip?)
+        } else {
+            None
+        })
+    }
+
+    pub fn load_by_id(&self, id: usize) -> Result<Option<AudioClip>> {
+        let mut stmt = self
+            .0
+            .prepare("SELECT id, name, date, sample_rate, opus FROM clips WHERE id = ?1")?;
+        let mut clip_iter = stmt.query_map([id], |row| {
+            let date: String = row.get(2)?;
+            let bytes: Vec<u8> = row.get(4)?;
+            let sample_rate: u32 = row.get(3)?;
+            let samples = decode_v1(sample_rate, &bytes).map_err(|_| {
+                rusqlite::Error::InvalidColumnType(3, "opus".to_string(), Type::Blob)
+            })?;
 
             Ok(AudioClip {
                 id: Some(row.get(0)?),

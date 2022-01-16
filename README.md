@@ -2,8 +2,7 @@
 
 Oxygen is a voice journal and audio analysis toolkit for people who want to
 change the way their voice comes across. Or rather, it will be. This is still
-in very early development. For now, it's a command line version of the
-Voice Memos app on Apple platforms.
+in very early development. 
 
 You can watch me code this at https://www.youtube.com/c/JocelynStericker
 
@@ -26,16 +25,19 @@ can help visualize or measure the aspects we need to work on, but my current
 setup, without that software, is a bit of a Rube Goldberg machine, and I hope I
 can make training more accessible, organized, and addicting.
 
-## Building
+## Building the CLI
 
-This project uses Rust. Once Rust is installed, you can build and run oxygen
-with cargo:
+This project uses Rust. Once Rust is installed, you can build and run the
+oxygen CLI with cargo:
 
 ```
+cd ./core
 cargo run
 ```
 
-## Using
+## Using the CLI
+
+You can run the CLI by running `cargo run` in `./core`.
 
 Oxygen will store clips in the "oxygen.sqlite" file in the current working
 directory.
@@ -68,6 +70,24 @@ cargo run -- export name path
 
 cargo run -- export-all folder
   Export all clips to the given folder.
+```
+
+## Running the UI
+
+For now:
+
+```
+cd ./core
+npm i
+npm run build:debug
+
+cd ../ui
+npm i
+
+# In one shell
+npx parcel src/index.htm
+# In another shell, while parcel is running
+npx electron .
 ```
 
 ## Contributing

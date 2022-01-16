@@ -1,7 +1,14 @@
 [package]
-name = "oxygen"
+name = "oxygen-core"
 version = "0.1.0"
 edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[[bin]]
+name = "oxygen-cli"
+path = "src/cli.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -16,3 +23,8 @@ ctrlc = "3.2.1"
 audiopus = "0.3.0-rc.0"
 symphonia = {version = "0.4.0", features = ["isomp4", "mp3", "aac"] }
 hound = "3.4.0"
+napi = {version = "2.0.3", features = ["napi8"]}
+napi-derive = "2.0.7"
+
+[build-dependencies]
+napi-build = "1.2.1"

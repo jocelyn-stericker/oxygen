@@ -2,7 +2,7 @@ mod audio_clip;
 mod db;
 mod internal_encoding;
 
-use std::{ffi::OsStr, path::Path};
+use std::{ffi::OsStr, path::Path, sync::mpsc::channel};
 
 use audio_clip::AudioClip;
 use chrono::prelude::*;
@@ -75,7 +75,18 @@ fn main() -> Result<()> {
             if db.load(&name)?.is_some() {
                 return Err(eyre!("There is already a clip named {}", name));
             }
-            let mut clip = AudioClip::record(name)?;
+            let handle = AudioClip::record(name)?;
+
+            let (tx, rx) = channel();
+            ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))?;
+
+            println!("Waiting for Ctrl-C...");
+            rx.recv()?;
+            println!("Got it! Exiting...");
+
+            let mut clip = handle.stop();
+
+            eprintln!("Recorded {} samples", clip.samples.len());
             db.save(&mut clip)?;
         }
         Commands::List {} => {
@@ -95,7 +106,12 @@ fn main() -> Result<()> {
         }
         Commands::Play { name } => {
             if let Some(clip) = db.load(&name)? {
-                clip.play()?
+                let handle = clip.play()?;
+                let (done_tx, done_rx) = channel::<()>();
+                handle.connect_done(move || {
+                    done_tx.send(()).unwrap();
+                });
+                done_rx.recv()?;
             } else {
                 return Err(eyre!("No such clip."));
             }

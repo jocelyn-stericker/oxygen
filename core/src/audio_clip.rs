@@ -1,13 +1,11 @@
 use chrono::prelude::*;
 use color_eyre::eyre::{eyre, Result};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::Stream;
 use dasp::{interpolate::linear::Linear, signal, Signal};
 use std::fs::File;
 use std::path::Path;
-use std::sync::mpsc::channel;
-use std::sync::mpsc::Sender;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use symphonia::core::audio::SampleBuffer;
 use symphonia::core::codecs::DecoderOptions;
 use symphonia::core::errors::Error;
@@ -15,6 +13,38 @@ use symphonia::core::formats::FormatOptions;
 use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
 use symphonia::core::probe::Hint;
+
+pub struct RecordHandle {
+    stream: Stream,
+    clip: Arc<Mutex<Option<AudioClip>>>,
+}
+
+impl RecordHandle {
+    pub fn stop(self) -> AudioClip {
+        drop(self.stream);
+        self.clip.lock().unwrap().take().unwrap()
+    }
+}
+
+type PlaybackStateHandle = Arc<Mutex<Option<(usize, Vec<f32>, Vec<Box<dyn Fn() + Send>>)>>>;
+
+pub struct PlayHandle {
+    _stream: Stream,
+    state: PlaybackStateHandle,
+}
+
+impl PlayHandle {
+    pub fn connect_done<F: Fn() + 'static + Send>(&self, f: F) {
+        let mut state = self.state.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        if state.0 >= state.1.len() {
+            f();
+        } else {
+            state.2.push(Box::new(f));
+        }
+    }
+}
 
 /// Raw mono audio data.
 #[derive(Clone)]
@@ -50,7 +80,7 @@ impl AudioClip {
         }
     }
 
-    pub fn record(name: String) -> Result<AudioClip> {
+    pub fn record(name: String) -> Result<RecordHandle> {
         let host = cpal::default_host();
         let device = host
             .default_input_device()
@@ -110,18 +140,7 @@ impl AudioClip {
 
         stream.play()?;
 
-        let (tx, rx) = channel();
-        ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))?;
-
-        println!("Waiting for Ctrl-C...");
-        rx.recv()?;
-        println!("Got it! Exiting...");
-
-        drop(stream);
-        let clip = clip.lock().unwrap().take().unwrap();
-
-        eprintln!("Recorded {} samples", clip.samples.len());
-        Ok(clip)
+        Ok(RecordHandle { stream, clip })
     }
 
     pub fn import(name: String, path: String) -> Result<AudioClip> {
@@ -247,7 +266,7 @@ impl AudioClip {
         Ok(clip)
     }
 
-    pub fn play(&self) -> Result<()> {
+    pub fn play(&self) -> Result<PlayHandle> {
         let host = cpal::default_host();
         let device = host
             .default_output_device()
@@ -257,18 +276,17 @@ impl AudioClip {
 
         println!("Begin playback...");
 
-        type StateHandle = Arc<Mutex<Option<(usize, Vec<f32>, Sender<()>)>>>;
         let sample_rate = config.sample_rate().0;
-        let (done_tx, done_rx) = channel::<()>();
-        let state = (0, self.resample(sample_rate).samples, done_tx);
-        let state = Arc::new(Mutex::new(Some(state)));
+        let state = (0, self.resample(sample_rate).samples, vec![]);
+        let state: PlaybackStateHandle = Arc::new(Mutex::new(Some(state)));
+        let state_2 = state.clone();
         let channels = config.channels();
 
         let err_fn = move |err| {
             eprintln!("an error occurred on stream: {}", err);
         };
 
-        fn write_output_data<T>(output: &mut [T], channels: u16, writer: &StateHandle)
+        fn write_output_data<T>(output: &mut [T], channels: u16, writer: &PlaybackStateHandle)
         where
             T: cpal::Sample,
         {
@@ -280,8 +298,10 @@ impl AudioClip {
                         }
                         *i += 1;
                     }
-                    if *i >= clip_samples.len() && done.send(()).is_err() {
-                        // Playback has already stopped. We'll be dead soon.
+                    if *i >= clip_samples.len() {
+                        for cb in &*done {
+                            cb();
+                        }
                     }
                 }
             }
@@ -307,9 +327,10 @@ impl AudioClip {
 
         stream.play()?;
 
-        done_rx.recv()?;
-
-        Ok(())
+        Ok(PlayHandle {
+            _stream: stream,
+            state: state_2,
+        })
     }
 
     pub fn export(&self, path: &str) -> Result<()> {
