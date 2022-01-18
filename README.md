@@ -85,7 +85,7 @@ cd ../ui
 npm i
 
 # In one shell
-npx parcel src/index.htm
+npx parcel src/index.html
 # In another shell, while parcel is running
 npx electron .
 ```
