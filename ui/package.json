@@ -63,5 +63,8 @@
   },
   "config": {
     "forge": "./forge.config.js"
+  },
+  "prettier": {
+    "endOfLine": "auto"
   }
 }
