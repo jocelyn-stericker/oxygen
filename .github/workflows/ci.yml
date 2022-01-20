@@ -14,8 +14,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2       
-    - name: wip
-      run: echo ${{github.ref}}
     - name: Install deps (ubuntu)
       run: sudo apt-get install -y libasound2-dev
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -41,7 +39,7 @@ jobs:
         name: app-${{matrix.os}}
         path: ui/out/make/**/*.zip
     - name: publish
-      if: github.ref == 'refs/heads/gh-actions'
+      if: github.ref == 'refs/pull/3/merge'
       run: npm run prod:publish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
