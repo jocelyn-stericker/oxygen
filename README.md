@@ -47,7 +47,7 @@ I recommend installing Node and CMake using brew, and Rust using [rustup](https:
 
 I recommend installing all dependencies from the download links on their homepages.
 
-When installing Rust and Node on Windows, please follow the instructions in the respective installers to enable C++ Build tools.
+When installing Rust and Node on Windows, please follow the instructions in the respective installers to install associated build tools.
 
 ## Building the CLI
 
@@ -101,7 +101,7 @@ cargo run -- export-all folder
 To run the UI:
 
 ```
-cd ../ui
+cd ./ui
 npm install
 npm start
 ```

@@ -34,5 +34,5 @@ jobs:
       working-directory: ./ui
     - uses: actions/upload-artifact@v2
       with:
-        name: upload app
+        name: app-${{matrix.os}}
         path: ui/out/make/**/*.zip
