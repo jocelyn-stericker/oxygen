@@ -8,7 +8,7 @@ import { Record, Pause, Play, Stop } from "./icons";
 
 function Main() {
   // Hack to force a re-render when the state changes.
-  const [_, setUpdateSymbol] = useState({});
+  const [, setUpdateSymbol] = useState({});
   const updateCallback = useCallback(() => {
     setUpdateSymbol({});
   }, [setUpdateSymbol]);

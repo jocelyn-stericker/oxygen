@@ -1,3 +1,5 @@
+/* eslint-env node */
+
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 
@@ -11,8 +13,12 @@ const createWindow = () => {
     },
   });
 
-  win.loadURL("http://localhost:1234");
-  win.webContents.openDevTools({ mode: "bottom" });
+  if (app.isPackaged) {
+    win.loadFile("dist/index.html");
+  } else {
+    win.loadURL("http://localhost:1234");
+    win.webContents.openDevTools({ mode: "bottom" });
+  }
 };
 
 app.on("window-all-closed", () => {

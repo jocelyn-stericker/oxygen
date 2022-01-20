@@ -17,7 +17,6 @@ clap = { version = "3.0.0", features = ["derive"] }
 cpal = "0.13.4"
 color-eyre = "0.5.11"
 dasp = {version = "0.11.0", features = ["signal", "interpolate", "interpolate-linear"]}
-rusqlite = "0.26.3"
 chrono = "0.4.19"
 ctrlc = "3.2.1"
 audiopus = "0.3.0-rc.0"
@@ -25,6 +24,10 @@ symphonia = {version = "0.4.0", features = ["isomp4", "mp3", "aac"] }
 hound = "3.4.0"
 napi = {version = "2.0.3", features = ["napi8"]}
 napi-derive = "2.0.7"
+
+[dependencies.rusqlite]
+version = "0.26.3"
+features = ["bundled"]
 
 [build-dependencies]
 napi-build = "1.2.1"

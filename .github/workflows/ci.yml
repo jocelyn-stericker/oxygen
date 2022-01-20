@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v2       
+    - name: ui: install dependencies
+      run: npm install
+      working-directory: ./ui
+    - name: core: test
+      run: cargo test
+      working-directory: ./core
+    - name: core: clippy
+      run: cargo clippy
+      working-directory: ./core
+    - name: ui: test
+      run: npm test
+      working-directory: ./ui
+    - name: make
+      run: npm run prod:make
+      working-directory: ./ui
+    - uses: actions/upload-artifact@v2
+      with:
+        name: upload app
+        path: ui/out/make/**/*.zip
