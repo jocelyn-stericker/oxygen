@@ -14,16 +14,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2       
-    - name: ui: install dependencies
+    - name: ui | install dependencies
       run: npm install
       working-directory: ./ui
-    - name: core: test
+    - name: core | test
       run: cargo test
       working-directory: ./core
-    - name: core: clippy
+    - name: core | clippy
       run: cargo clippy
       working-directory: ./core
-    - name: ui: test
+    - name: ui | test
       run: npm test
       working-directory: ./ui
     - name: make
