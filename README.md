@@ -106,6 +106,24 @@ npm install
 npm start
 ```
 
+## Building the app in release mode
+
+To build a package to `ui/out`:
+
+```
+cd ./ui
+npm run prod:package
+```
+
+To create the kind of asset that would get uploaded to GitHub releases:
+
+```
+cd ./ui
+npm run prod:make
+```
+
+`npm run prod:publish` would publish the app to GitHub releases, but it requires `GITHUB_TOKEN` to be set. We only publish releases from GitHub Actions.
+
 ## Contributing
 
 Bug fixes are very welcome! I do have a rough roadmap planned for this project,

@@ -30,16 +30,18 @@ jobs:
       run: npm test
       working-directory: ./ui
     - name: make (ui)
-      if: github.event_name != 'pull_request'
+      if: github.event_name == 'pull_request'
       run: npm run prod:make
       working-directory: ./ui
     - uses: actions/upload-artifact@v2
-      if: github.event_name != 'pull_request'
+      if: github.event_name == 'pull_request'
       with:
         name: app-${{matrix.os}}
         path: ui/out/make/**/*.zip
     - name: publish
-      if: github.ref == 'refs/pull/3/merge'
+      #if: github.ref == 'refs/pull/3/merge'
+      if: github.ref == 'refs/heads/main'
       run: npm run prod:publish
+      working-directory: ./ui
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
