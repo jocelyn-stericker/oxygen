@@ -14,19 +14,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2       
-    - name: ui | install dependencies
-      run: npm install
-      working-directory: ./ui
-    - name: core | test
+    - name: Install deps (ubuntu)
+      run: sudo apt-get install -y libasound2-dev
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+    - name: test (core)
       run: cargo test
       working-directory: ./core
-    - name: core | clippy
+    - name: clippy (core)
       run: cargo clippy
       working-directory: ./core
-    - name: ui | test
+    - name: install dependencies (ui)
+      run: npm install
+      working-directory: ./ui
+    - name: test (ui)
       run: npm test
       working-directory: ./ui
-    - name: make
+    - name: make (ui)
       run: npm run prod:make
       working-directory: ./ui
     - uses: actions/upload-artifact@v2
