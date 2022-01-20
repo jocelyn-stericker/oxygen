@@ -25,6 +25,30 @@ can help visualize or measure the aspects we need to work on, but my current
 setup, without that software, is a bit of a Rube Goldberg machine, and I hope I
 can make training more accessible, organized, and addicting.
 
+## Dependencies
+
+Building Oxygen requires [Rust](https://www.rust-lang.org/learn/get-started), [Node 16](https://nodejs.org/en/), and [CMake](https://cmake.org/download/) on all platforms. The Linux build also requires ALSA development files.
+
+### Linux
+
+I recommend installing Rust using [rustup](https://www.rust-lang.org/learn/get-started).
+
+Oxygen is tested with Node 16. If your package manager contains Node 16, I recommend using that. Otherwise, see [Installing Node.js via package manager](https://nodejs.org/en/download/package-manager/).
+
+I recommend installing CMake via your package manager.
+
+In addition, on Linux, the ALSA development files are required. These are provided as part of the `libasound2-dev` package on Debian and Ubuntu distributions and `alsa-lib-devel` on Fedora.
+
+### macOS
+
+I recommend installing Node and CMake using brew, and Rust using [rustup](https://www.rust-lang.org/learn/get-started).
+
+### Windows
+
+I recommend installing all dependencies from the download links on their homepages.
+
+When installing Rust and Node on Windows, please follow the instructions in the respective installers to enable C++ Build tools.
+
 ## Building the CLI
 
 This project uses Rust. Once Rust is installed, you can build and run the
@@ -74,20 +98,12 @@ cargo run -- export-all folder
 
 ## Running the UI
 
-For now:
+To run the UI:
 
 ```
-cd ./core
-npm i
-npm run build:debug
-
 cd ../ui
-npm i
-
-# In one shell
-npx parcel src/index.html
-# In another shell, while parcel is running
-npx electron .
+npm install
+npm start
 ```
 
 ## Contributing
