@@ -41,7 +41,7 @@ In addition, on Linux, the ALSA development files are required. These are provid
 
 ### macOS
 
-I recommend installing Node and CMake using brew, and Rust using [rustup](https://www.rust-lang.org/learn/get-started).
+I recommend installing Node and CMake using brew (`brew install node cmake`), and Rust using [rustup](https://www.rust-lang.org/learn/get-started).
 
 ### Windows
 

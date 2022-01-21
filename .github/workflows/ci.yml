@@ -36,23 +36,23 @@ jobs:
       working-directory: ./ui
     - name: make (ui)
       if: github.event_name == 'pull_request'
-      run: npm run prod:make
+      run: npm run prod:package
       working-directory: ./ui
     - uses: actions/upload-artifact@v2
       if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-20.04'
       with:
-        name: Oxygen-linux-x64
-        path: ui/out/make/zip/linux/x64/Oxygen-linux-x64-0.0.1-${{ github.sha }}.zip
+        name: Oxygen-linux-x64-${{ github.sha }}
+        path: ui/out/Oxygen-linux-x64/*
     - uses: actions/upload-artifact@v2
       if: github.event_name == 'pull_request' && matrix.os == 'windows-2019'
       with:
-        name: Oxygen-win32-x64
-        path: ui/out/make/zip/win32/x64/Oxygen-win32-x64-0.0.1-${{ github.sha }}.zip
+        name: Oxygen-win32-x64-${{ github.sha }}
+        path: ui/out/Oxygen-win32-x64/*
     - uses: actions/upload-artifact@v2
       if: github.event_name == 'pull_request' && matrix.os == 'macos-11'
       with:
-        name: Oxygen-macos-x64
-        path: ui/out/make/zip/darwin/x64/Oxygen-darwin-x64-0.0.1-${{ github.sha }}.zip
+        name: Oxygen-macos-x64-${{ github.sha }}
+        path: ui/out/Oxygen-darwin-x64/*
     - name: publish
       if: github.ref == 'refs/heads/main'
       run: npm run prod:publish
