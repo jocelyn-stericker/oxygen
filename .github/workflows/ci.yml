@@ -42,8 +42,6 @@ jobs:
     - name: Install deps (ubuntu)
       run: sudo apt-get install -y libasound2-dev
       if: matrix.os == 'ubuntu-20.04'
-    - run: echo ${{github.sha}}
-      name: Test
     - name: test (core)
       run: cargo test
       working-directory: ./core
