@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "main": "src/main.js",
   "scripts": {
-    "postinstall": "cd ../core && npm install",
+    "postinstall": "cd ../core && npm ci",
     "start": "run-p --race dev:parcel dev:sync-electron",
     "dev:parcel": "parcel ./src/index.html",
     "dev:sync-electron": "run-s dev:build-core dev:wait-for-parcel dev:electron",
@@ -27,9 +27,6 @@
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.63",
-    "@electron-forge/maker-deb": "^6.0.0-beta.63",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.63",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
     "@electron-forge/maker-zip": "^6.0.0-beta.63",
     "@electron-forge/publisher-github": "6.0.0-beta.63",
     "autoprefixer": "10.4.2",

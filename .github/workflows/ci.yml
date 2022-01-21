@@ -10,13 +10,16 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-11, ubuntu-20.04, windows-2022]
 
     steps:
     - uses: actions/checkout@v2       
+    - name: Set version (ui)
+      run: npm version 0.0.1-${{ github.sha }}
+      working-directory: ./ui
     - name: Install deps (ubuntu)
       run: sudo apt-get install -y libasound2-dev
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+      if: matrix.os == 'ubuntu-20.04'
     - run: echo ${{github.sha}}
       name: Test
     - name: test (core)
@@ -26,7 +29,7 @@ jobs:
       run: cargo clippy
       working-directory: ./core
     - name: install dependencies (ui)
-      run: npm install
+      run: npm ci
       working-directory: ./ui
     - name: test (ui)
       run: npm test
@@ -36,14 +39,23 @@ jobs:
       run: npm run prod:make
       working-directory: ./ui
     - uses: actions/upload-artifact@v2
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-20.04'
       with:
-        name: app-${{matrix.os}}
-        path: ui/out/make/**/*.zip
+        name: Oxygen-linux-x64
+        path: ui/out/make/zip/linux/x64/Oxygen-linux-x64-0.0.1-${{ github.sha }}.zip
+    - uses: actions/upload-artifact@v2
+      if: github.event_name == 'pull_request' && matrix.os == 'windows-2022'
+      with:
+        name: Oxygen-win32-x64
+        path: ui/out/make/zip/win32/x64/Oxygen-win32-x64-0.0.1-${{ github.sha }}.zip
+    - uses: actions/upload-artifact@v2
+      if: github.event_name == 'pull_request' && matrix.os == 'macos-11'
+      with:
+        name: Oxygen-macos-x64
+        path: ui/out/make/zip/darwin/x64/Oxygen-darwin-x64-0.0.1-${{ github.sha }}.zip
     - name: publish
-      if: github.ref == 'refs/pull/3/merge'
-      #if: github.ref == 'refs/heads/main'
-      run: npm version 0.0.1-${{ github.sha }} && npm run prod:publish
+      if: github.ref == 'refs/heads/main'
+      run: npm run prod:publish
       working-directory: ./ui
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
