@@ -60,6 +60,8 @@ jobs:
       if: github.event_name == 'pull_request'
       run: npm run prod:make
       working-directory: ./ui
+    - uses: actions/upload-artifact@v2
+      if: github.event_name == 'pull_request'
       with:
         name: Oxygen-${{matrix.os}}
         path: ui/out/make/**/*.zip
