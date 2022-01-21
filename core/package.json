@@ -5,10 +5,6 @@
   "main": "index.js",
   "repository": "",
   "license": "MIT",
-  "files": [
-    "index.d.ts",
-    "index.js"
-  ],
   "napi": {
     "name": "oxygen-core",
     "triples": {
@@ -18,6 +14,11 @@
       ]
     }
   },
+  "files": [
+    "index.d.ts",
+    "index.js",
+    "*.node"
+  ],
   "scripts": {
     "build": "napi build --platform --release",
     "build:debug": "napi build --platform"

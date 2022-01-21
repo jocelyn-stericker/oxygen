@@ -1,30 +1,66 @@
 {
   "name": "oxygen-ui",
-  "version": "0.0.0",
-  "description": "",
+  "productName": "Oxygen",
+  "author": "Jocelyn Stericker",
+  "description": "A voice journal and audio analysis toolkit for people who want to change the way their voice comes across.",
+  "version": "0.0.1",
   "main": "src/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "cd ../core && npm ci",
+    "start": "run-p --race dev:parcel dev:sync-electron",
+    "dev:parcel": "parcel ./src/index.html",
+    "dev:sync-electron": "run-s dev:build-core dev:wait-for-parcel dev:electron",
+    "dev:build-core": "cd ../core && npm run build:debug",
+    "dev:wait-for-parcel": "wait-on http://localhost:1234",
+    "dev:electron": "electron .",
+    "prod:make-deps": "run-p prod:parcel prod:build-core",
+    "prod:parcel": "rimraf dist && parcel build ./src/index.html --public-url ./",
+    "prod:build-core": "cd ../core && npm run build",
+    "prod:package": "rimraf out && npm run prod:make-deps && electron-forge package",
+    "prod:make": "rimraf out && npm run prod:make-deps && electron-forge make",
+    "prod:publish": "rimraf out && npm run prod:make-deps && electron-forge publish",
+    "prettier": "prettier --check .",
+    "prettier:fix": "prettier --write .",
+    "eslint": "eslint .",
+    "eslint:fix": "eslint --fix .",
+    "test": "run-p prettier eslint"
   },
-  "author": "",
   "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.63",
+    "@electron-forge/maker-zip": "^6.0.0-beta.63",
+    "@electron-forge/publisher-github": "6.0.0-beta.63",
     "autoprefixer": "10.4.2",
+    "classnames": "2.3.1",
     "electron": "16.0.7",
+    "eslint": "^8.7.0",
+    "eslint-plugin-react": "^7.28.0",
+    "npm-run-all": "4.1.5",
     "parcel": "2.2.0",
     "postcss": "8.4.5",
     "prettier": "2.5.1",
-    "tailwindcss": "3.0.15"
-  },
-  "dependencies": {
-    "oxygen-core": "../core",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "classnames": "2.3.1"
+    "rimraf": "^3.0.2",
+    "tailwindcss": "3.0.15",
+    "typescript": "4.5.4",
+    "wait-on": "6.0.0"
+  },
+  "dependencies": {
+    "oxygen-core": "../core"
   },
   "license": "ISC",
   "alias": {
     "oxygen-core": {
       "global": "oxygen"
     }
+  },
+  "targets": {
+    "main": false
+  },
+  "config": {
+    "forge": "./forge.config.js"
+  },
+  "prettier": {
+    "endOfLine": "auto"
   }
 }
