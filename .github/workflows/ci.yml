@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-11, ubuntu-20.04, windows-2022]
+        os: [macos-11, ubuntu-20.04, windows-2019]
 
     steps:
     - uses: actions/checkout@v2       
@@ -44,7 +44,7 @@ jobs:
         name: Oxygen-linux-x64
         path: ui/out/make/zip/linux/x64/Oxygen-linux-x64-0.0.1-${{ github.sha }}.zip
     - uses: actions/upload-artifact@v2
-      if: github.event_name == 'pull_request' && matrix.os == 'windows-2022'
+      if: github.event_name == 'pull_request' && matrix.os == 'windows-2019'
       with:
         name: Oxygen-win32-x64
         path: ui/out/make/zip/win32/x64/Oxygen-win32-x64-0.0.1-${{ github.sha }}.zip
