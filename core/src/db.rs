@@ -183,4 +183,10 @@ impl Db {
 
         Ok(())
     }
+
+    pub fn delete_by_id(&self, id: usize) -> Result<()> {
+        self.0.execute("DELETE FROM clips WHERE id = ?1", [id])?;
+
+        Ok(())
+    }
 }

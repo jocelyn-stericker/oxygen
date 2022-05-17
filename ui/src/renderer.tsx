@@ -1,10 +1,10 @@
-// @ts-check
-
 import { UiState } from "oxygen-core";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import React, { useState, useCallback } from "react";
 import cx from "classnames";
-import { Record, Pause, Play, Stop } from "./icons";
+import { Record, Stop } from "./icons";
+
+import CurrentClip from "./current_clip";
 
 function Main() {
   // Hack to force a re-render when the state changes.
@@ -62,44 +62,7 @@ function Main() {
           </li>
         ))}
       </ul>
-      {uiState.currentClipId != null && (
-        <div className="flex flex-row flex-grow">
-          <div className="flex-grow" />
-          <button
-            className={cx(
-              "p-4 rounded-md m-auto text-lg flex border-2",
-              uiState.streaming
-                ? "bg-white border-purple-900 text-purple-900 hover:bg-purple-100"
-                : "bg-purple-900 text-white hover:bg-purple-800"
-            )}
-            onClick={(ev) => {
-              ev.preventDefault();
-              if (!uiState.streaming) {
-                uiState.play(() => {
-                  uiState.stop();
-                });
-              } else {
-                uiState.stop();
-              }
-            }}
-          >
-            {uiState.streaming ? (
-              <>
-                <Pause />
-                <span className="w-2" />
-                Pause
-              </>
-            ) : (
-              <>
-                <Play />
-                <span className="w-2" />
-                Play
-              </>
-            )}
-          </button>
-          <div className="flex-grow" />
-        </div>
-      )}
+      {uiState.currentClipId != null && <CurrentClip uiState={uiState} />}
       {uiState.recordTabSelected && (
         <div className="flex flex-row flex-grow">
           <div className="flex-grow" />
@@ -140,4 +103,5 @@ function Main() {
   );
 }
 
-ReactDOM.render(<Main />, document.getElementById("root"));
+const root = createRoot(document.getElementById("root"));
+root.render(<Main />);

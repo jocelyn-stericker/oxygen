@@ -56,6 +56,16 @@ impl From<ClipMeta> for JsClipMeta {
     }
 }
 
+impl From<&AudioClip> for JsClipMeta {
+    fn from(clip: &AudioClip) -> Self {
+        JsClipMeta(ClipMeta {
+            id: clip.id.unwrap_or(0),
+            name: clip.name.clone(),
+            date: clip.date,
+        })
+    }
+}
+
 #[napi]
 impl UiState {
     #[napi(constructor)]
@@ -81,6 +91,14 @@ impl UiState {
         match &self.tab {
             Tab::Record { .. } => None,
             Tab::Clip { audio_clip, .. } => Some(audio_clip.id.expect("Saved clips must have IDs")),
+        }
+    }
+
+    #[napi(getter)]
+    pub fn get_current_clip(&self) -> Option<JsClipMeta> {
+        match &self.tab {
+            Tab::Record { .. } => None,
+            Tab::Clip { audio_clip, .. } => Some(JsClipMeta::from(audio_clip)),
         }
     }
 
@@ -156,9 +174,15 @@ impl UiState {
         match &mut self.tab {
             Tab::Record { handle } => {
                 if let Some(handle) = handle.take() {
+                    let mut audio_clip = handle.stop();
                     self.db
-                        .save(&mut handle.stop())
+                        .save(&mut audio_clip)
                         .map_err(|e| Error::from_reason(e.to_string()))?;
+
+                    self.tab = Tab::Clip {
+                        audio_clip,
+                        handle: None,
+                    };
                 }
             }
             Tab::Clip { handle, .. } => {
@@ -168,6 +192,25 @@ impl UiState {
 
         self.update_cb
             .call((), ThreadsafeFunctionCallMode::NonBlocking);
+
+        Ok(())
+    }
+
+    #[napi]
+    pub fn delete_clip(&mut self) -> Result<()> {
+        if let Tab::Clip {
+            audio_clip: AudioClip { id: Some(id), .. },
+            ..
+        } = &mut self.tab
+        {
+            self.db
+                .delete_by_id(*id)
+                .map_err(|e| Error::from_reason(e.to_string()))?;
+        } else {
+            return Err(Error::from_reason("No clip selected"));
+        }
+
+        self.set_current_tab_record();
 
         Ok(())
     }
