@@ -13,21 +13,21 @@ path = "src/cli.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "3.0.0", features = ["derive"] }
-cpal = "0.13.4"
-color-eyre = "0.5.11"
+clap = { version = "3.1.18", features = ["derive"] }
+cpal = "0.13.5"
+color-eyre = "0.6.1"
 dasp = {version = "0.11.0", features = ["signal", "interpolate", "interpolate-linear"]}
 chrono = "0.4.19"
-ctrlc = "3.2.1"
+ctrlc = "3.2.2"
 audiopus = "0.3.0-rc.0"
-symphonia = {version = "0.4.0", features = ["isomp4", "mp3", "aac"] }
+symphonia = {version = "0.5.0", features = ["isomp4", "mp3", "aac"] }
 hound = "3.4.0"
-napi = {version = "2.0.3", features = ["napi8"]}
-napi-derive = "2.0.7"
+napi = {version = "2.4.3", features = ["napi8"]}
+napi-derive = "2.4.1"
 
 [dependencies.rusqlite]
-version = "0.26.3"
+version = "0.27.0"
 features = ["bundled"]
 
 [build-dependencies]
-napi-build = "1.2.1"
+napi-build = "2.0.0"

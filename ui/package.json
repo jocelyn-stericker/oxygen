@@ -29,24 +29,23 @@
     "@electron-forge/cli": "^6.0.0-beta.63",
     "@electron-forge/maker-zip": "^6.0.0-beta.63",
     "@electron-forge/publisher-github": "6.0.0-beta.63",
-    "autoprefixer": "10.4.2",
     "classnames": "2.3.1",
-    "electron": "16.0.7",
-    "eslint": "^8.7.0",
-    "eslint-plugin-react": "^7.28.0",
+    "electron": "18.2.3",
+    "eslint": "8.15.0",
+    "eslint-plugin-react": "7.29.4",
     "npm-run-all": "4.1.5",
-    "parcel": "2.2.0",
-    "postcss": "8.4.5",
-    "prettier": "2.5.1",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
+    "parcel": "2.5.0",
+    "postcss": "8.4.13",
+    "prettier": "2.6.2",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
     "rimraf": "^3.0.2",
-    "tailwindcss": "3.0.15",
-    "typescript": "4.5.4",
-    "wait-on": "6.0.0"
+    "tailwindcss": "3.0.24",
+    "typescript": "4.6.4",
+    "wait-on": "6.0.1"
   },
   "dependencies": {
-    "oxygen-core": "../core"
+    "oxygen-core": "file:../core"
   },
   "license": "ISC",
   "alias": {

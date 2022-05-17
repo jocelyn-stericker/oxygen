@@ -6,7 +6,7 @@ use std::{ffi::OsStr, path::Path, sync::mpsc::channel};
 
 use audio_clip::AudioClip;
 use chrono::prelude::*;
-use clap::{AppSettings, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use color_eyre::eyre::{eyre, Result};
 use db::Db;
 
@@ -31,20 +31,20 @@ enum Commands {
     /// List all clips.
     List {},
     /// Play the clip with the given name.
-    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    #[clap(arg_required_else_help = true)]
     Play {
         /// The name of the clip to play.
         name: String,
     },
     /// Delete the clip with the given name.
-    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    #[clap(arg_required_else_help = true)]
     Delete {
         /// The name of the clip to delete.
         name: String,
     },
     /// Import the clip at the given path. If a name is not specified, the clip will be
     /// named after the path.
-    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    #[clap(arg_required_else_help = true)]
     Import {
         /// The path to import.
         path: String,
@@ -52,14 +52,14 @@ enum Commands {
         name: Option<String>,
     },
     /// Export the clip with the given name to the given path, as a wav file.
-    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    #[clap(arg_required_else_help = true)]
     Export {
         /// The name of the clip to export.
         name: String,
         /// The path to export to, ending in ".wav".
         path: String,
     },
-    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    #[clap(arg_required_else_help = true)]
     /// Export all clips to the given folder.
     ExportAll { folder: String },
 }
@@ -96,11 +96,7 @@ fn main() -> Result<()> {
                     "{:5} {:30} {:30}",
                     entry.id,
                     entry.name,
-                    entry
-                        .date
-                        .with_timezone(&Local)
-                        .format("%Y-%m-%d %H:%M:%S")
-                        .to_string()
+                    entry.date.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S")
                 )
             }
         }
