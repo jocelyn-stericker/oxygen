@@ -17,6 +17,7 @@ clap = { version = "3.1.18", features = ["derive"] }
 cpal = "0.13.5"
 color-eyre = "0.6.1"
 dasp = {version = "0.11.0", features = ["signal", "interpolate", "interpolate-linear"]}
+directories = "4.0.1"
 chrono = "0.4.19"
 ctrlc = "3.2.2"
 audiopus = "0.3.0-rc.0"

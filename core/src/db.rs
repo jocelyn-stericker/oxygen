@@ -1,7 +1,10 @@
+use std::path::Path;
+
 use crate::audio_clip::AudioClip;
 use crate::internal_encoding::{decode_v0, decode_v1, encode_v1};
 use chrono::prelude::*;
 use color_eyre::eyre::{eyre, Result};
+use directories::ProjectDirs;
 use rusqlite::{params, types::Type, Connection};
 
 pub struct Db(Connection);
@@ -13,7 +16,21 @@ pub struct ClipMeta {
 }
 impl Db {
     pub fn open() -> Result<Db> {
-        let connection = Connection::open("oxygen.sqlite")?;
+        let proj_dirs = ProjectDirs::from("ca", "nettek", "oxygen").ok_or_else(|| {
+            eyre!("Could not find project directories (home directory could not be retreived)")
+        })?;
+        let data_dir = proj_dirs.data_dir();
+
+        std::fs::create_dir_all(data_dir)?;
+        let db_file_path = data_dir.join("oxygen.sqlite");
+
+        if Path::new("oxygen.sqlite").exists() && !db_file_path.exists() {
+            eprintln!("Migration: moving oxygen.sqlite to {:?}", db_file_path);
+            std::fs::copy("oxygen.sqlite", &db_file_path)?;
+            std::fs::remove_file("oxygen.sqlite")?;
+        }
+
+        let connection = Connection::open(db_file_path)?;
         let user_version: u32 =
             connection.query_row("SELECT user_version FROM pragma_user_version", [], |r| {
                 r.get(0)
@@ -22,7 +39,7 @@ impl Db {
         connection.pragma_update(None, "user_version", 2)?;
 
         if user_version < 1 {
-            eprintln!("Init schema...");
+            eprintln!("Migration: init schema...");
             connection.execute(
                 "
                 CREATE TABLE IF NOT EXISTS clips (
@@ -38,7 +55,7 @@ impl Db {
         }
 
         if user_version < 2 {
-            eprintln!("Updating schema...");
+            eprintln!("Migration: updating schema to version 2...");
             let mut stmt =
                 connection.prepare("SELECT id, name, date, sample_rate, samples FROM clips")?;
             let clip_iter = stmt.query_map([], |row| {
