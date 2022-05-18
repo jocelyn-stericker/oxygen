@@ -19,7 +19,7 @@ export default function CurrentClip({ uiState }: { uiState: UiState }) {
           onChange={(ev) => {
             setTemporaryName(ev.currentTarget.value);
           }}
-          onBlur={(ev) => {
+          onBlur={() => {
             const name = temporaryName.trim();
             if (name != "") {
               uiState.renameCurrentClip(name);
