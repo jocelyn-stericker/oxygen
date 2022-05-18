@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 const { app, BrowserWindow } = require("electron");
 const path = require("path");

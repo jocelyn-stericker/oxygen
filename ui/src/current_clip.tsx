@@ -2,8 +2,15 @@ import { UiState } from "oxygen-core";
 import cx from "classnames";
 import React, { useState, useEffect } from "react";
 import { Pause, Play, Delete } from "./icons";
+import { ToasterInterface } from "./toaster";
 
-export default function CurrentClip({ uiState }: { uiState: UiState }) {
+export default function CurrentClip({
+  uiState,
+  toaster,
+}: {
+  uiState: UiState;
+  toaster: React.MutableRefObject<ToasterInterface>;
+}) {
   const clip = uiState.currentClip;
   const [temporaryName, setTemporaryName] = useState(clip.name);
   useEffect(() => {
@@ -22,10 +29,25 @@ export default function CurrentClip({ uiState }: { uiState: UiState }) {
           onBlur={() => {
             const name = temporaryName.trim();
             if (name != "") {
-              uiState.renameCurrentClip(name);
-            } else {
-              setTemporaryName(uiState.currentClip.name);
+              try {
+                uiState.renameCurrentClip(name);
+                toaster.current.info(`Renamed "${clip.name}" to "${name}"`);
+              } catch (err) {
+                if (err instanceof Error) {
+                  // TODO: stable interface for error messages and/or tests
+                  if (err.message == "UNIQUE constraint failed: clips.name") {
+                    toaster.current.error(
+                      "This name is taken by another clip."
+                    );
+                  } else {
+                    toaster.current.error(
+                      "Something went wrong when renaming this clip."
+                    );
+                  }
+                }
+              }
             }
+            setTemporaryName(uiState.currentClip.name);
           }}
         />
         <button
@@ -33,6 +55,7 @@ export default function CurrentClip({ uiState }: { uiState: UiState }) {
           title="Delete this clip"
           onClick={(ev) => {
             uiState.deleteCurrentClip();
+            toaster.current.info(`Deleted "${clip.name}"`);
             ev.preventDefault();
           }}
         >

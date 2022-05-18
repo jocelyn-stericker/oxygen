@@ -1,10 +1,11 @@
 import { UiState } from "oxygen-core";
 import { createRoot } from "react-dom/client";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import cx from "classnames";
-import { Record, Stop } from "./icons";
 
+import { Record, Stop } from "./icons";
 import CurrentClip from "./current_clip";
+import Toaster, { ToasterInterface } from "./toaster";
 
 function Main() {
   // Hack to force a re-render when the state changes.
@@ -15,8 +16,10 @@ function Main() {
 
   const [uiState] = useState(() => new UiState(updateCallback));
   const clips = uiState.getClips().reverse();
+  const toaster = useRef<ToasterInterface>(null);
   return (
     <div className="w-screen h-screen flex flex-row">
+      <Toaster ref={toaster} />
       <ul className="w-72 border-r-purple-900 border-r-2 h-full divide-y divide-purple-200 overflow-y-auto">
         <li
           className="hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden"
@@ -62,7 +65,9 @@ function Main() {
           </li>
         ))}
       </ul>
-      {uiState.currentClipId != null && <CurrentClip uiState={uiState} />}
+      {uiState.currentClipId != null && (
+        <CurrentClip uiState={uiState} toaster={toaster} />
+      )}
       {uiState.recordTabSelected && (
         <div className="flex flex-row flex-grow">
           <div className="flex-grow" />
