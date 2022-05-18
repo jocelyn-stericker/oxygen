@@ -197,7 +197,7 @@ impl UiState {
     }
 
     #[napi]
-    pub fn delete_clip(&mut self) -> Result<()> {
+    pub fn delete_current_clip(&mut self) -> Result<()> {
         if let Tab::Clip {
             audio_clip: AudioClip { id: Some(id), .. },
             ..
@@ -211,6 +211,31 @@ impl UiState {
         }
 
         self.set_current_tab_record();
+
+        Ok(())
+    }
+
+    #[napi]
+    pub fn rename_current_clip(&mut self, new_name: String) -> Result<()> {
+        let clip_id;
+
+        if let Tab::Clip {
+            audio_clip: AudioClip { id: Some(id), .. },
+            ..
+        } = &mut self.tab
+        {
+            clip_id = *id;
+
+            self.db
+                .rename_by_id(*id, &new_name)
+                .map_err(|e| Error::from_reason(e.to_string()))?;
+        } else {
+            return Err(Error::from_reason("No clip selected"));
+        }
+
+        self.set_current_clip_id(clip_id as u32)?;
+        self.update_cb
+            .call((), ThreadsafeFunctionCallMode::NonBlocking);
 
         Ok(())
     }

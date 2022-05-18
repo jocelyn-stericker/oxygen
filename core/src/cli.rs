@@ -36,6 +36,15 @@ enum Commands {
         /// The name of the clip to play.
         name: String,
     },
+    /// Rename a clip with the given name.
+    #[clap(arg_required_else_help = true)]
+    Rename {
+        /// The old name.
+        old_name: String,
+
+        /// The new name.
+        new_name: String,
+    },
     /// Delete the clip with the given name.
     #[clap(arg_required_else_help = true)]
     Delete {
@@ -111,6 +120,9 @@ fn main() -> Result<()> {
             } else {
                 return Err(eyre!("No such clip."));
             }
+        }
+        Commands::Rename { old_name, new_name } => {
+            db.rename(&old_name, &new_name)?;
         }
         Commands::Delete { name } => {
             db.delete(&name)?;

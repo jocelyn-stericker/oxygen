@@ -1,22 +1,38 @@
 import { UiState } from "oxygen-core";
 import cx from "classnames";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Pause, Play, Delete } from "./icons";
 
 export default function CurrentClip({ uiState }: { uiState: UiState }) {
   const clip = uiState.currentClip;
+  const [temporaryName, setTemporaryName] = useState(clip.name);
+  useEffect(() => {
+    setTemporaryName(clip.name);
+  }, [clip.name]);
+
   return (
     <div className="flex flex-col flex-grow">
       <div className="flex flex-row">
-        <div className="self-center p-4 text-m font-bold overflow-ellipses overflow-hidden">
-          {clip.name}
-        </div>
-        <div className="flex-grow" />
+        <input
+          className="self-center p-2 m-2 text-m font-bold overflow-ellipses overflow-hidden border-2 border-purple-200 rounded-md focus:border-purple-900 outline-purple-900 text-purple-900 flex-grow transition-all"
+          value={temporaryName}
+          onChange={(ev) => {
+            setTemporaryName(ev.currentTarget.value);
+          }}
+          onBlur={(ev) => {
+            const name = temporaryName.trim();
+            if (name != "") {
+              uiState.renameCurrentClip(name);
+            } else {
+              setTemporaryName(uiState.currentClip.name);
+            }
+          }}
+        />
         <button
-          className="p-2 m-2 text-purple-900 cursor-pointer border-2 border-transparent hover:border-red-900 rounded-full hover:bg-red-100 hover:text-red-900"
+          className="p-2 m-2 ml-0 text-purple-900 cursor-pointer border-2 border-transparent hover:border-red-900 rounded-full hover:bg-red-100 hover:text-red-900"
           title="Delete this clip"
           onClick={(ev) => {
-            uiState.deleteClip();
+            uiState.deleteCurrentClip();
             ev.preventDefault();
           }}
         >

@@ -1,7 +1,7 @@
 use crate::audio_clip::AudioClip;
 use crate::internal_encoding::{decode_v0, decode_v1, encode_v1};
 use chrono::prelude::*;
-use color_eyre::Result;
+use color_eyre::eyre::{eyre, Result};
 use rusqlite::{params, types::Type, Connection};
 
 pub struct Db(Connection);
@@ -186,6 +186,32 @@ impl Db {
 
     pub fn delete_by_id(&self, id: usize) -> Result<()> {
         self.0.execute("DELETE FROM clips WHERE id = ?1", [id])?;
+
+        Ok(())
+    }
+
+    pub fn rename(&self, old_name: &str, new_name: &str) -> Result<()> {
+        let rows_changed = self.0.execute(
+            "UPDATE clips SET name = ?2 WHERE name = ?1",
+            [old_name, new_name],
+        )?;
+
+        if rows_changed == 0 {
+            return Err(eyre!("There is no clip named \"{}\"", old_name));
+        }
+
+        Ok(())
+    }
+
+    pub fn rename_by_id(&self, id: usize, new_name: &str) -> Result<()> {
+        let rows_changed = self.0.execute(
+            "UPDATE clips SET name = ?2 WHERE id = ?1",
+            params![id, new_name],
+        )?;
+
+        if rows_changed == 0 {
+            return Err(eyre!("There is no clip with ID {}", id));
+        }
 
         Ok(())
     }
