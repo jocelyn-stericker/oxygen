@@ -14,19 +14,41 @@ use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
 use symphonia::core::probe::Hint;
 
+pub struct RecordState {
+    clip: AudioClip,
+}
+
 pub struct RecordHandle {
     stream: Stream,
-    clip: Arc<Mutex<Option<AudioClip>>>,
+    clip: Arc<Mutex<Option<RecordState>>>,
 }
 
 impl RecordHandle {
     pub fn stop(self) -> AudioClip {
         drop(self.stream);
-        self.clip.lock().unwrap().take().unwrap()
+        self.clip.lock().unwrap().take().unwrap().clip
+    }
+
+    pub fn time(&self) -> f64 {
+        let mut state = self.clip.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        (state.clip.samples.len() as f64) / (state.clip.sample_rate as f64)
     }
 }
 
-type PlaybackStateHandle = Arc<Mutex<Option<(usize, Vec<f32>, Vec<Box<dyn Fn() + Send>>)>>>;
+type RecordStateHandle = Arc<Mutex<Option<RecordState>>>;
+
+struct PlaybackState {
+    time: usize,
+    samples: Vec<f32>,
+    changed_cbs: Vec<Box<dyn Fn() + Send>>,
+    changed_cbs_triggered_at: usize,
+    done_cbs: Vec<Box<dyn Fn() + Send>>,
+    sample_rate: usize,
+}
+
+type PlaybackStateHandle = Arc<Mutex<Option<PlaybackState>>>;
 
 pub struct PlayHandle {
     _stream: Stream,
@@ -34,15 +56,28 @@ pub struct PlayHandle {
 }
 
 impl PlayHandle {
+    pub fn connect_changed<F: Fn() + 'static + Send>(&self, f: F) {
+        let mut state = self.state.lock().unwrap();
+        let state = state.as_mut().unwrap();
+        state.changed_cbs.push(Box::new(f));
+    }
+
     pub fn connect_done<F: Fn() + 'static + Send>(&self, f: F) {
         let mut state = self.state.lock().unwrap();
         let state = state.as_mut().unwrap();
 
-        if state.0 >= state.1.len() {
+        if state.time >= state.samples.len() {
             f();
         } else {
-            state.2.push(Box::new(f));
+            state.done_cbs.push(Box::new(f));
         }
+    }
+
+    pub fn time(&self) -> f64 {
+        let mut state = self.state.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        (state.time as f64) / (state.sample_rate as f64)
     }
 }
 
@@ -101,7 +136,7 @@ impl AudioClip {
             samples: Vec::new(),
             sample_rate: config.sample_rate().0,
         };
-        let clip = Arc::new(Mutex::new(Some(clip)));
+        let clip = Arc::new(Mutex::new(Some(RecordState { clip })));
         let clip_2 = clip.clone();
 
         println!("Begin recording...");
@@ -111,16 +146,14 @@ impl AudioClip {
 
         let channels = config.channels();
 
-        type ClipHandle = Arc<Mutex<Option<AudioClip>>>;
-
-        fn write_input_data<T>(input: &[T], channels: u16, writer: &ClipHandle)
+        fn write_input_data<T>(input: &[T], channels: u16, writer: &RecordStateHandle)
         where
             T: cpal::Sample,
         {
             if let Ok(mut guard) = writer.try_lock() {
-                if let Some(clip) = guard.as_mut() {
+                if let Some(state) = guard.as_mut() {
                     for frame in input.chunks(channels.into()) {
-                        clip.samples.push(frame[0].to_f32());
+                        state.clip.samples.push(frame[0].to_f32());
                     }
                 }
             }
@@ -283,7 +316,14 @@ impl AudioClip {
         println!("Begin playback...");
 
         let sample_rate = config.sample_rate().0;
-        let state = (0, self.resample(sample_rate).samples, vec![]);
+        let state = PlaybackState {
+            time: 0,
+            samples: self.resample(sample_rate).samples,
+            done_cbs: vec![],
+            changed_cbs: vec![],
+            changed_cbs_triggered_at: 0,
+            sample_rate: sample_rate as usize,
+        };
         let state: PlaybackStateHandle = Arc::new(Mutex::new(Some(state)));
         let state_2 = state.clone();
         let channels = config.channels();
@@ -297,17 +337,24 @@ impl AudioClip {
             T: cpal::Sample,
         {
             if let Ok(mut guard) = writer.try_lock() {
-                if let Some((i, clip_samples, done)) = guard.as_mut() {
+                if let Some(state) = guard.as_mut() {
                     for frame in output.chunks_mut(channels.into()) {
                         for sample in frame.iter_mut() {
-                            *sample = cpal::Sample::from(clip_samples.get(*i).unwrap_or(&0f32));
+                            *sample =
+                                cpal::Sample::from(state.samples.get(state.time).unwrap_or(&0f32));
                         }
-                        *i += 1;
+                        state.time += 1;
                     }
-                    if *i >= clip_samples.len() {
-                        for cb in &*done {
+                    if state.time >= state.samples.len() {
+                        for cb in &*state.done_cbs {
                             cb();
                         }
+                    }
+                    if state.time >= state.changed_cbs_triggered_at + state.sample_rate / 10 {
+                        for cb in &*state.changed_cbs {
+                            cb();
+                        }
+                        state.changed_cbs_triggered_at = state.time;
                     }
                 }
             }

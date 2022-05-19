@@ -147,6 +147,11 @@ impl UiState {
                 on_done.call((), ThreadsafeFunctionCallMode::NonBlocking);
             });
 
+            let update_cb = self.update_cb.clone();
+            new_handle.connect_changed(move || {
+                update_cb.call((), ThreadsafeFunctionCallMode::NonBlocking);
+            });
+
             *handle = Some(new_handle);
 
             self.update_cb
@@ -313,6 +318,20 @@ impl UiState {
         match &self.tab {
             Tab::Record { handle } => handle.is_some(),
             Tab::Clip { handle, .. } => handle.is_some(),
+        }
+    }
+
+    #[napi(getter)]
+    pub fn get_time(&self) -> f64 {
+        match &self.tab {
+            Tab::Record {
+                handle: Some(handle),
+            } => handle.time(),
+            Tab::Clip {
+                handle: Some(handle),
+                ..
+            } => handle.time(),
+            Tab::Record { handle: None } | Tab::Clip { handle: None, .. } => 0.0,
         }
     }
 }

@@ -62,6 +62,7 @@ export default function CurrentClip({
   }, [redraw]);
 
   useEffect(redraw, [redraw, uiState.currentClipId]);
+  console.log("render", uiState.time);
 
   return (
     <div className="flex flex-col flex-grow">
@@ -124,6 +125,9 @@ export default function CurrentClip({
       </div>
       <div className="flex flex-row mb-4">
         <div className="flex-grow" />
+        <div className="flex self-center mr-2 font-mono">
+          {uiState.time.toFixed(2)}
+        </div>
         <button
           className={cx(
             "p-4 rounded-md m-auto text-lg flex border-2",
