@@ -7,6 +7,7 @@ use audio_clip::{PlayHandle, RecordHandle};
 use chrono::prelude::*;
 use db::{ClipMeta, Db};
 use napi::{
+    bindgen_prelude::Buffer,
     threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
     Env, Error, JsDate, JsFunction, JsUnknown, Result,
 };
@@ -267,6 +268,44 @@ impl UiState {
             .call((), ThreadsafeFunctionCallMode::NonBlocking);
 
         Ok(())
+    }
+
+    #[napi]
+    pub fn draw_current_clip_waveform(
+        &mut self,
+        width: u32,
+        height: u32,
+    ) -> Result<Option<Buffer>> {
+        let width = width as usize;
+        let height = height as usize;
+
+        let clip = match &self.tab {
+            Tab::Record { .. } => {
+                return Ok(None);
+            }
+            Tab::Clip { audio_clip, .. } => audio_clip,
+        };
+
+        let columns = clip.render_waveform((0, clip.num_samples()), width);
+        let mut buffer = vec![0; width * height * 4];
+
+        for (x, column) in columns.iter().enumerate() {
+            let min_y = ((height as f32) * (column.min + 1.0) / 2.0)
+                .floor()
+                .max(0.0) as usize;
+            let max_y =
+                (((height as f32) * (column.max + 1.0) / 2.0).ceil() as usize).min(height - 1);
+
+            for y in min_y..=max_y {
+                // purple-900 :)
+                buffer[y * width * 4 + x * 4] = 88;
+                buffer[y * width * 4 + x * 4 + 1] = 28;
+                buffer[y * width * 4 + x * 4 + 2] = 135;
+                buffer[y * width * 4 + x * 4 + 3] = 255;
+            }
+        }
+
+        Ok(Some(buffer.into()))
     }
 
     #[napi(getter)]

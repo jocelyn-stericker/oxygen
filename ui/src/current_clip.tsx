@@ -1,6 +1,6 @@
 import { UiState } from "oxygen-core";
 import cx from "classnames";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Pause, Play, Delete } from "./icons";
 import { ToasterInterface } from "./toaster";
 
@@ -16,6 +16,52 @@ export default function CurrentClip({
   useEffect(() => {
     setTemporaryName(clip.name);
   }, [clip.name]);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const canvasContainer = useRef<HTMLDivElement>(null);
+
+  const redraw = useCallback(() => {
+    console.time("draw");
+    const rect = canvas.current.parentElement.getBoundingClientRect();
+    canvas.current.width = rect.width * devicePixelRatio;
+    canvas.current.height = rect.height * devicePixelRatio;
+    canvas.current.style.width = `${rect.width * devicePixelRatio}px`;
+    canvas.current.style.height = `${rect.height * devicePixelRatio}px`;
+    canvas.current.style.transform = `scale(${1 / devicePixelRatio})`;
+    canvas.current.style.transformOrigin = "top left";
+
+    const buffer = uiState.drawCurrentClipWaveform(
+      canvas.current.width,
+      canvas.current.height
+    );
+
+    const array = new Uint8ClampedArray(buffer);
+    const image = new ImageData(
+      array,
+      canvas.current.width,
+      canvas.current.height
+    );
+    const context = canvas.current.getContext("2d");
+    context.putImageData(image, 0, 0);
+    console.timeEnd("draw");
+  }, [uiState]);
+
+  useEffect(() => {
+    // ResizeObserver calls immediately on observe, so we need to work around that.
+    const state = { didInit: false };
+    const observer = new ResizeObserver(() => {
+      if (state.didInit) {
+        redraw();
+      } else {
+        state.didInit = true;
+      }
+    });
+    observer.observe(canvasContainer.current);
+    return () => {
+      observer.disconnect();
+    };
+  }, [redraw]);
+
+  useEffect(redraw, [redraw, uiState.currentClipId]);
 
   return (
     <div className="flex flex-col flex-grow">
@@ -73,8 +119,10 @@ export default function CurrentClip({
           <Delete />
         </button>
       </div>
-      <div className="flex-grow" />
-      <div className="flex flex-row flex-grow">
+      <div className="flex-grow relative overflow-hidden" ref={canvasContainer}>
+        <canvas className="absolute w-full h-full" ref={canvas} />
+      </div>
+      <div className="flex flex-row mb-4">
         <div className="flex-grow" />
         <button
           className={cx(
@@ -110,7 +158,6 @@ export default function CurrentClip({
         </button>
         <div className="flex-grow" />
       </div>
-      <div className="flex-grow" />
     </div>
   );
 }

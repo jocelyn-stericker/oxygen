@@ -56,6 +56,12 @@ pub struct AudioClip {
     pub sample_rate: u32,
 }
 
+#[derive(Debug)]
+pub struct DisplayColumn {
+    pub min: f32,
+    pub max: f32,
+}
+
 impl AudioClip {
     pub fn resample(&self, sample_rate: u32) -> AudioClip {
         if self.sample_rate == sample_rate {
@@ -353,5 +359,45 @@ impl AudioClip {
         writer.finalize()?;
 
         Ok(())
+    }
+
+    pub fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn> {
+        let min_t = range.0.min(self.samples.len()) as f32;
+        let max_t = (range.1.min(self.samples.len()) as f32).max(min_t);
+        let samples_per_pixel = ((max_t as f32) - (min_t as f32)) / (pixels as f32);
+
+        (0..pixels)
+            .map(|pixel_i| {
+                let mut min = 1.0f32;
+                let mut max = -1.0f32;
+
+                let start_sample = (min_t + samples_per_pixel * (pixel_i as f32)).floor() as usize;
+                let end_sample = ((min_t + samples_per_pixel * ((pixel_i + 1) as f32)).floor()
+                    as usize)
+                    .min(self.samples.len() - 1);
+
+                for sample in &self.samples[start_sample..=end_sample] {
+                    min = min.min(*sample);
+                    max = max.max(*sample);
+                }
+
+                if min > max {
+                    min = 0.0;
+                    max = 0.0;
+                }
+                if min < -1.0 {
+                    min = -1.0;
+                }
+                if max > 1.0 {
+                    max = 1.0;
+                }
+
+                DisplayColumn { min, max }
+            })
+            .collect()
+    }
+
+    pub fn num_samples(&self) -> usize {
+        self.samples.len()
     }
 }

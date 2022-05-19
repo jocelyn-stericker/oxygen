@@ -17,8 +17,6 @@ function Main() {
   const [uiState] = useState(() => new UiState(updateCallback));
   const clips = uiState.getClips().reverse();
   const toaster = useRef<ToasterInterface>(null);
-  console.log("HI!!!");
-  console.log(toaster);
   return (
     <div className="w-screen h-screen flex flex-row">
       <Toaster ref={toaster} />
