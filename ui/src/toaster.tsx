@@ -10,15 +10,21 @@ import cx from "classnames";
 import { Dismiss } from "./icons";
 
 type ToastType = "error" | "info";
+interface ToastAction {
+  text: string;
+  cb: () => void;
+}
 interface Toast {
   toastType: ToastType;
   id: number;
   text: string;
+  uniqueKey?: string;
+  action?: ToastAction;
 }
 
 export interface ToasterInterface {
-  error: (msg: string) => void;
-  info: (msg: string) => void;
+  error: (msg: string, action?: ToastAction, uniqueKey?: string) => void;
+  info: (msg: string, action?: ToastAction, uniqueKey?: string) => void;
 }
 
 const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
@@ -32,24 +38,37 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
     };
   }, []);
 
-  const addToast = useCallback((text: string, toastType: ToastType) => {
-    const id = nextId.current;
-    setToasts((toasts) => [...toasts, { text, toastType, id }]);
-    nextId.current += 1;
+  const addToast = useCallback(
+    (
+      text: string,
+      toastType: ToastType,
+      action?: ToastAction,
+      uniqueKey?: string
+    ) => {
+      const id = nextId.current;
+      setToasts((toasts) => [
+        ...toasts.filter(
+          (toast) => !uniqueKey || toast.uniqueKey !== uniqueKey
+        ),
+        { text, toastType, id, action, uniqueKey },
+      ]);
+      nextId.current += 1;
 
-    setTimeout(() => {
-      setToasts((toasts) => toasts.filter((toast) => toast.id !== id));
-    }, 4000);
-  }, []);
+      setTimeout(() => {
+        setToasts((toasts) => toasts.filter((toast) => toast.id !== id));
+      }, 4000);
+    },
+    []
+  );
 
   useImperativeHandle(
     ref,
     () => ({
-      error: (msg: string) => {
-        addToast(msg, "error");
+      error: (msg: string, action?: ToastAction, uniqueKey?: string) => {
+        addToast(msg, "error", action, uniqueKey);
       },
-      info: (msg: string) => {
-        addToast(msg, "info");
+      info: (msg: string, action?: ToastAction, uniqueKey?: string) => {
+        addToast(msg, "info", action, uniqueKey);
       },
     }),
     [addToast]
@@ -69,8 +88,24 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
           key={toast.id}
         >
           {toast.text}
+          {toast.action && (
+            <button
+              className="cursor-pointer ml-4 font-bold inline opacity-50 hover:opacity-100"
+              onClick={(ev) => {
+                ev.preventDefault();
+                const id = toast.id;
+                setToasts((toasts) =>
+                  toasts.filter((toast) => toast.id !== id)
+                );
+                toast.action.cb();
+              }}
+            >
+              {toast.action.text}
+            </button>
+          )}
+
           <button
-            className="cursor-pointer ml-4 font-bold inline opacity-50"
+            className="cursor-pointer ml-4 font-bold inline opacity-50 hover:opacity-100"
             title="Dismiss"
             onClick={(ev) => {
               ev.preventDefault();

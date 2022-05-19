@@ -55,7 +55,16 @@ export default function CurrentClip({
           title="Delete this clip"
           onClick={(ev) => {
             uiState.deleteCurrentClip();
-            toaster.current.info(`Deleted "${clip.name}"`);
+            toaster.current.info(
+              `Deleted "${clip.name}"`,
+              {
+                text: "Undo",
+                cb: () => {
+                  uiState.undeleteCurrentClip();
+                },
+              },
+              "undoDeleteCurrentClip"
+            );
             ev.preventDefault();
           }}
         >

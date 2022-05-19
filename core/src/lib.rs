@@ -26,6 +26,7 @@ enum Tab {
 pub struct UiState {
     tab: Tab,
     db: Db,
+    deleted_clip: Option<AudioClip>,
     update_cb: ThreadsafeFunction<(), ErrorStrategy::Fatal>,
 }
 
@@ -73,6 +74,7 @@ impl UiState {
         Ok(UiState {
             tab: Tab::Record { handle: None },
             db: Db::open().map_err(|e| Error::from_reason(e.to_string()))?,
+            deleted_clip: None,
             update_cb: update_cb
                 .create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?,
         })
@@ -198,19 +200,46 @@ impl UiState {
 
     #[napi]
     pub fn delete_current_clip(&mut self) -> Result<()> {
-        if let Tab::Clip {
-            audio_clip: AudioClip { id: Some(id), .. },
-            ..
-        } = &mut self.tab
-        {
-            self.db
-                .delete_by_id(*id)
-                .map_err(|e| Error::from_reason(e.to_string()))?;
+        let mut tab = Tab::Record { handle: None };
+        std::mem::swap(&mut tab, &mut self.tab);
+
+        self.update_cb
+            .call((), ThreadsafeFunctionCallMode::NonBlocking);
+
+        if let Tab::Clip { mut audio_clip, .. } = tab {
+            if let Some(id) = audio_clip.id {
+                self.db
+                    .delete_by_id(id)
+                    .map_err(|e| Error::from_reason(e.to_string()))?;
+                audio_clip.id = None;
+                self.deleted_clip = Some(audio_clip);
+            } else {
+                return Err(Error::from_reason("Clip is not saved to db"));
+            }
         } else {
             return Err(Error::from_reason("No clip selected"));
         }
 
-        self.set_current_tab_record();
+        Ok(())
+    }
+
+    #[napi]
+    pub fn undelete_current_clip(&mut self) -> Result<()> {
+        if let Some(mut audio_clip) = self.deleted_clip.take() {
+            self.db
+                .save(&mut audio_clip)
+                .map_err(|e| Error::from_reason(e.to_string()))?;
+
+            self.tab = Tab::Clip {
+                audio_clip,
+                handle: None,
+            };
+
+            self.update_cb
+                .call((), ThreadsafeFunctionCallMode::NonBlocking);
+        } else {
+            return Err(Error::from_reason("No clip to undelete"));
+        }
 
         Ok(())
     }
