@@ -30,8 +30,10 @@ export default function CurrentClip({
             const name = temporaryName.trim();
             if (name != "") {
               try {
-                uiState.renameCurrentClip(name);
-                toaster.current.info(`Renamed "${clip.name}" to "${name}"`);
+                if (name !== clip.name) {
+                  uiState.renameCurrentClip(name);
+                  toaster.current.info(`Renamed "${clip.name}" to "${name}"`);
+                }
               } catch (err) {
                 if (err instanceof Error) {
                   // TODO: stable interface for error messages and/or tests

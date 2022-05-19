@@ -75,11 +75,11 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
   );
 
   return (
-    <div className="fixed left-1/2">
+    <div className="fixed left-1/2 bottom-0 flex flex-col-reverse">
       {toasts.map((toast) => (
         <div
           className={cx(
-            "left-1/2 -translate-x-1/2 p-2 first-of-type:border-t-0 border-2 last-of-type:rounded-b-md flex",
+            "left-1/2 -translate-x-1/2 p-2 first-of-type:border-b-0 border-2 last-of-type:rounded-t-md flex",
             toast.toastType === "error" &&
               "text-red-900 bg-red-100 border-red-300",
             toast.toastType === "info" &&
@@ -87,7 +87,7 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
           )}
           key={toast.id}
         >
-          {toast.text}
+          <div className="flex-grow">{toast.text}</div>
           {toast.action && (
             <button
               className="cursor-pointer ml-4 font-bold inline opacity-50 hover:opacity-100"
