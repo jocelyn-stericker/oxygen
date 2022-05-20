@@ -1,17 +1,12 @@
-pub mod audio_clip;
-pub mod db;
-pub mod internal_encoding;
-
-use crate::audio_clip::AudioClip;
-use audio_clip::{PlayHandle, RecordHandle, StreamHandle};
 use chrono::prelude::*;
-use db::{ClipMeta, Db};
 use napi::{
     bindgen_prelude::Buffer,
     threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
     Env, Error, JsDate, JsFunction, JsUnknown, Result,
 };
 use napi_derive::napi;
+use oxygen_core::audio_clip::{AudioClip, PlayHandle, RecordHandle, StreamHandle};
+use oxygen_core::db::{ClipMeta, Db};
 
 enum Tab {
     Record {

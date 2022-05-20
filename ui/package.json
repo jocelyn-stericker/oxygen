@@ -6,16 +6,16 @@
   "version": "0.0.1",
   "main": "src/main.js",
   "scripts": {
-    "postinstall": "cd ../core && npm ci",
+    "postinstall": "cd ../core/napi && npm ci",
     "start": "run-p --race dev:parcel dev:sync-electron",
     "dev:parcel": "parcel ./src/index.html",
     "dev:sync-electron": "run-s dev:build-core dev:wait-for-parcel dev:electron",
-    "dev:build-core": "cd ../core && npm run build:debug",
+    "dev:build-core": "cd ../core/napi && npm run build:debug",
     "dev:wait-for-parcel": "wait-on http://localhost:1234",
     "dev:electron": "electron .",
     "prod:make-deps": "run-p prod:parcel prod:build-core",
     "prod:parcel": "rimraf dist && parcel build ./src/index.html --public-url ./",
-    "prod:build-core": "cd ../core && npm run build",
+    "prod:build-core": "cd ../core/napi && npm run build",
     "prod:package": "rimraf out && npm run prod:make-deps && electron-forge package",
     "prod:make": "rimraf out && npm run prod:make-deps && electron-forge make",
     "prod:publish": "rimraf out && npm run prod:make-deps && electron-forge publish",
@@ -51,7 +51,7 @@
     "wait-on": "6.0.1"
   },
   "dependencies": {
-    "oxygen-core": "file:../core"
+    "oxygen-core": "file:../core/napi"
   },
   "license": "ISC",
   "alias": {

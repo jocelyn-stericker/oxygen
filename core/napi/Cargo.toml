@@ -1,0 +1,16 @@
+[package]
+name = "oxygen-napi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+oxygen-core = { path = "../lib" }
+napi = {version = "2.4.3", features = ["napi8"]}
+napi-derive = "2.4.1"
+chrono = "0.4.19"
+
+[build-dependencies]
+napi-build = "2.0.0"
