@@ -1,6 +1,6 @@
-mod audio_clip;
-mod db;
-mod internal_encoding;
+pub mod audio_clip;
+pub mod db;
+pub mod internal_encoding;
 
 use crate::audio_clip::AudioClip;
 use audio_clip::{PlayHandle, RecordHandle, StreamHandle};

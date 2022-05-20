@@ -1,14 +1,9 @@
-mod audio_clip;
-mod db;
-mod internal_encoding;
-
-use std::{ffi::OsStr, path::Path, sync::mpsc::channel};
-
-use audio_clip::AudioClip;
 use chrono::prelude::*;
 use clap::{Parser, Subcommand};
 use color_eyre::eyre::{eyre, Result};
-use db::Db;
+use oxygen_core::audio_clip::AudioClip;
+use oxygen_core::db::Db;
+use std::{ffi::OsStr, path::Path, sync::mpsc::channel};
 
 #[derive(Parser, Debug)]
 #[clap(name = "oxygen")]
