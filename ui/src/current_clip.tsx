@@ -122,12 +122,16 @@ export default function CurrentClip({
       </div>
       <div className="flex-grow relative overflow-hidden" ref={canvasContainer}>
         <canvas className="absolute w-full h-full" ref={canvas} />
+        <div
+          className="absolute w-[1px] bg-blue-400 h-full"
+          style={{ left: `${uiState.timePercent * 100}%` }}
+        />
       </div>
       <div className="flex flex-row mb-4">
-        <div className="flex-grow" />
-        <div className="flex self-center mr-2 font-mono">
-          {uiState.time.toFixed(2)}
+        <div className="flex self-center font-mono text-purple-900 mx-2 w-20">
+          {uiState.time.toFixed(2).padStart(6, "0")}
         </div>
+        <div className="flex-grow" />
         <button
           className={cx(
             "p-4 rounded-md m-auto text-lg flex border-2",
@@ -161,6 +165,7 @@ export default function CurrentClip({
           )}
         </button>
         <div className="flex-grow" />
+        <div className="w-20 mx-2" />
       </div>
     </div>
   );

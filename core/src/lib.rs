@@ -3,7 +3,7 @@ mod db;
 mod internal_encoding;
 
 use crate::audio_clip::AudioClip;
-use audio_clip::{PlayHandle, RecordHandle};
+use audio_clip::{PlayHandle, RecordHandle, StreamHandle};
 use chrono::prelude::*;
 use db::{ClipMeta, Db};
 use napi::{
@@ -321,17 +321,34 @@ impl UiState {
         }
     }
 
-    #[napi(getter)]
-    pub fn get_time(&self) -> f64 {
+    fn stream_handle(&self) -> Option<&dyn StreamHandle> {
         match &self.tab {
             Tab::Record {
                 handle: Some(handle),
-            } => handle.time(),
+            } => Some(handle),
             Tab::Clip {
                 handle: Some(handle),
                 ..
-            } => handle.time(),
-            Tab::Record { handle: None } | Tab::Clip { handle: None, .. } => 0.0,
+            } => Some(handle),
+            Tab::Record { handle: None } | Tab::Clip { handle: None, .. } => None,
+        }
+    }
+
+    #[napi(getter)]
+    pub fn get_time(&self) -> f64 {
+        if let Some(handle) = self.stream_handle() {
+            handle.time()
+        } else {
+            0.0
+        }
+    }
+
+    #[napi(getter)]
+    pub fn get_time_percent(&self) -> f64 {
+        if let Some(handle) = self.stream_handle() {
+            (handle.sample_rate() as f64) * handle.time() / (handle.samples() as f64)
+        } else {
+            0.0
         }
     }
 }

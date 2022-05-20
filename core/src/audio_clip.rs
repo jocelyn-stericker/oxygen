@@ -28,13 +28,6 @@ impl RecordHandle {
         drop(self.stream);
         self.clip.lock().unwrap().take().unwrap().clip
     }
-
-    pub fn time(&self) -> f64 {
-        let mut state = self.clip.lock().unwrap();
-        let state = state.as_mut().unwrap();
-
-        (state.clip.samples.len() as f64) / (state.clip.sample_rate as f64)
-    }
 }
 
 type RecordStateHandle = Arc<Mutex<Option<RecordState>>>;
@@ -72,8 +65,53 @@ impl PlayHandle {
             state.done_cbs.push(Box::new(f));
         }
     }
+}
 
-    pub fn time(&self) -> f64 {
+pub trait StreamHandle {
+    fn sample_rate(&self) -> u32;
+    fn samples(&self) -> usize;
+    fn time(&self) -> f64;
+}
+
+impl StreamHandle for RecordHandle {
+    fn sample_rate(&self) -> u32 {
+        let mut state = self.clip.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        state.clip.sample_rate
+    }
+
+    fn samples(&self) -> usize {
+        let mut state = self.clip.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        state.clip.samples.len()
+    }
+
+    fn time(&self) -> f64 {
+        let mut state = self.clip.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        (state.clip.samples.len() as f64) / (state.clip.sample_rate as f64)
+    }
+}
+
+impl StreamHandle for PlayHandle {
+    fn sample_rate(&self) -> u32 {
+        let mut state = self.state.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        state.sample_rate as u32
+    }
+
+    fn samples(&self) -> usize {
+        let mut state = self.state.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        state.samples.len()
+    }
+
+    fn time(&self) -> f64 {
         let mut state = self.state.lock().unwrap();
         let state = state.as_mut().unwrap();
 
@@ -350,7 +388,7 @@ impl AudioClip {
                             cb();
                         }
                     }
-                    if state.time >= state.changed_cbs_triggered_at + state.sample_rate / 10 {
+                    if state.time >= state.changed_cbs_triggered_at + state.sample_rate / 100 {
                         for cb in &*state.changed_cbs {
                             cb();
                         }
