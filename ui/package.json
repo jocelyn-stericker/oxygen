@@ -24,7 +24,8 @@
     "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint:fix": "eslint --fix . --ext .js,.jsx,.ts,.tsx",
     "jest": "TZ=UTC jest",
-    "test": "run-p prettier eslint jest"
+    "build-and-jest": "run-s dev:build-core jest",
+    "test": "run-p prettier eslint build-and-jest"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.63",
