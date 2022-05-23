@@ -31,6 +31,15 @@ impl Db {
         }
 
         let connection = Connection::open(db_file_path)?;
+        Self::from_connection(connection)
+    }
+
+    pub fn in_memory() -> Result<Db> {
+        let connection = Connection::open_in_memory()?;
+        Self::from_connection(connection)
+    }
+
+    fn from_connection(connection: Connection) -> Result<Db> {
         let user_version: u32 =
             connection.query_row("SELECT user_version FROM pragma_user_version", [], |r| {
                 r.get(0)

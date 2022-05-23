@@ -66,10 +66,15 @@ impl From<&AudioClip> for JsClipMeta {
 #[napi]
 impl UiState {
     #[napi(constructor)]
-    pub fn new(update_cb: JsFunction) -> Result<UiState> {
+    pub fn new(update_cb: JsFunction, in_memory: bool) -> Result<UiState> {
         Ok(UiState {
             tab: Tab::Record { handle: None },
-            db: Db::open().map_err(|e| Error::from_reason(e.to_string()))?,
+            db: if in_memory {
+                Db::in_memory()
+            } else {
+                Db::open()
+            }
+            .map_err(|e| Error::from_reason(e.to_string()))?,
             deleted_clip: None,
             update_cb: update_cb
                 .create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?,
