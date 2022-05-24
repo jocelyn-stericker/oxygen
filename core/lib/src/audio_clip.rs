@@ -160,10 +160,13 @@ impl AudioClip {
     }
 
     pub fn record(name: String) -> Result<RecordHandle> {
+        eprintln!("Record 1");
         let host = cpal::default_host();
+        eprintln!("Record 2");
         let device = host
             .default_input_device()
             .ok_or_else(|| eyre!("No input device"))?;
+        eprintln!("Record 3");
         println!("Input device: {}", device.name()?);
         let config = device.default_input_config()?;
 
