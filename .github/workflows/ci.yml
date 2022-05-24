@@ -44,9 +44,11 @@ jobs:
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
-          net start audiosrv
           powershell sound-ci-helpers-windows/setup_sound.ps1
-          Get-PnpDevice -Class AudioEndpoint | Enable-PnpDevice -Confirm $false
+          Get-PnpDevice -Class AudioEndpoint | fl
+          net stop audiosrv
+          net start audiosrv
+          Get-PnpDevice -Class AudioEndpoint | fl
         if: matrix.os == 'windows-2019'
       - name: test (core)
         run: cargo test
