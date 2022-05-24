@@ -82,7 +82,8 @@ export default function ClipList({
           </h2>
           <div className="flex flex-row">
             <div className="text-xs font-light">
-              {clip.date.toDateString()} at {clip.date.toLocaleTimeString()}
+              {clip.date.toLocaleDateString(undefined, { dateStyle: "full" })}{" "}
+              at {clip.date.toLocaleTimeString()}
             </div>
           </div>
         </li>

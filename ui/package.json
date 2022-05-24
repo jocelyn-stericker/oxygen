@@ -13,19 +13,20 @@
     "dev:build-core": "cd ../core/napi && npm run build:debug",
     "dev:wait-for-parcel": "wait-on http://localhost:1234",
     "dev:electron": "electron .",
+    "dev:core-and-jest": "run-s dev:build-core jest",
     "prod:make-deps": "run-p prod:parcel prod:build-core",
     "prod:parcel": "rimraf dist && parcel build ./src/index.html --public-url ./",
     "prod:build-core": "cd ../core/napi && npm run build",
     "prod:package": "rimraf out && npm run prod:make-deps && electron-forge package",
     "prod:make": "rimraf out && npm run prod:make-deps && electron-forge make",
     "prod:publish": "rimraf out && npm run prod:make-deps && electron-forge publish",
+    "prod:core-and-jest": "run-s prod:build-core jest",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint:fix": "eslint --fix . --ext .js,.jsx,.ts,.tsx",
-    "jest": "TZ=UTC jest .",
-    "build-and-jest": "run-s dev:build-core jest",
-    "test": "run-p prettier eslint build-and-jest"
+    "jest": "jest .",
+    "test": "run-p prettier eslint prod:core-and-jest"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.63",

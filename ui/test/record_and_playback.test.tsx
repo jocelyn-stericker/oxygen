@@ -5,7 +5,9 @@ import diff from "snapshot-diff";
 import UiMain from "../src/ui_main";
 
 beforeAll(() => {
-  jest.spyOn(Date.prototype, "toDateString").mockReturnValue("Mocked Date");
+  jest
+    .spyOn(Date.prototype, "toLocaleDateString")
+    .mockReturnValue("Mocked Date");
   jest
     .spyOn(Date.prototype, "toLocaleTimeString")
     .mockReturnValue("Mocked Date");

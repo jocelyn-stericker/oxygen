@@ -7,4 +7,5 @@ module.exports = {
   modulePathIgnorePatterns: ["out"],
   runner: "@kayahr/jest-electron-runner",
   testEnvironment: "@kayahr/jest-electron-runner/environment",
+  setupFiles: ["<rootDir>/src/test_setup.tsx"],
 };

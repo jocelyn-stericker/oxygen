@@ -46,12 +46,16 @@ describe("ClipList", () => {
       expect(record.getAttribute("aria-selected")).toEqual("true");
 
       const clip1 = clipList.getByTestId("clip-1");
-      expect(clip1.textContent).toEqual("Clip 1Sat May 14 2022 at 12:00:00 AM");
+      expect(clip1.textContent).toEqual(
+        "Clip 1Saturday, May 14, 2022 at 12:00:00 AM"
+      );
       expect(clip1.classList).not.toContain("bg-purple-900"); // Not selected.
       expect(clip1.getAttribute("aria-selected")).toEqual("false");
 
       const clip2 = clipList.getByTestId("clip-2");
-      expect(clip2.textContent).toEqual("Clip 2Fri May 20 2022 at 7:34:29 PM");
+      expect(clip2.textContent).toEqual(
+        "Clip 2Friday, May 20, 2022 at 7:34:29 PM"
+      );
       expect(clip2.classList).not.toContain("bg-purple-900"); // Not selected.
       expect(clip2.getAttribute("aria-selected")).toEqual("false");
 
