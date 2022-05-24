@@ -13,59 +13,64 @@ jobs:
         os: [macos-11, ubuntu-20.04, windows-2019]
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      name: Cache (rust)
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          core/target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    - name: Get npm cache directory
-      id: npm-cache-dir
-      run: |
-        echo "::set-output name=dir::$(npm config get cache)"
-    - uses: actions/cache@v2
-      name: Cache (node)
-      id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
-      with:
-        path: ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-    - name: Set version (ui)
-      run: npm version 0.0.1-${{ github.sha }}
-      working-directory: ./ui
-    - name: Install deps (ubuntu)
-      run: sudo apt-get install -y libasound2-dev
-      if: matrix.os == 'ubuntu-20.04'
-    - name: test (core)
-      run: cargo test
-      working-directory: ./core
-    - name: clippy (core)
-      run: cargo clippy
-      working-directory: ./core
-    - name: install dependencies (ui)
-      run: npm ci
-      working-directory: ./ui
-    - name: test (ui)
-      run: npm test
-      working-directory: ./ui
-    - name: make (ui)
-      if: github.event_name == 'pull_request'
-      run: npm run prod:make
-      working-directory: ./ui
-    - uses: actions/upload-artifact@v2
-      if: github.event_name == 'pull_request'
-      with:
-        name: Oxygen-${{matrix.os}}
-        path: ui/out/make/**/*.zip
-    - name: publish
-      if: github.ref == 'refs/heads/main'
-      run: npm run prod:publish
-      working-directory: ./ui
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        name: Cache (rust)
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            core/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        name: Cache (node)
+        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Set version (ui)
+        run: npm version 0.0.1-${{ github.sha }}
+        working-directory: ./ui
+      - name: Install deps (ubuntu)
+        run: sudo apt-get install -y libasound2-dev
+        if: matrix.os == 'ubuntu-20.04'
+      - name: Install deps (windows)
+        run: |
+          net start audiosrv
+          powershell sound-ci-helpers-windows/setup_sound.ps1
+        if: matrix.os == 'windows-2019'
+      - name: test (core)
+        run: cargo test
+        working-directory: ./core
+      - name: clippy (core)
+        run: cargo clippy
+        working-directory: ./core
+      - name: install dependencies (ui)
+        run: npm ci
+        working-directory: ./ui
+      - name: test (ui)
+        run: npm test
+        working-directory: ./ui
+      - name: make (ui)
+        if: github.event_name == 'pull_request'
+        run: npm run prod:make
+        working-directory: ./ui
+      - uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: Oxygen-${{matrix.os}}
+          path: ui/out/make/**/*.zip
+      - name: publish
+        if: github.ref == 'refs/heads/main'
+        run: npm run prod:publish
+        working-directory: ./ui
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
