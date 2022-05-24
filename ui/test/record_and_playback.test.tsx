@@ -9,6 +9,9 @@ beforeAll(() => {
   jest
     .spyOn(Date.prototype, "toLocaleTimeString")
     .mockReturnValue("Mocked Date");
+
+  document.body.style.width = "1024px";
+  document.body.style.height = "768px";
 });
 
 describe("app [integration]", () => {

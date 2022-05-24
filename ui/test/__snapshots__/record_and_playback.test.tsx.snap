@@ -222,8 +222,8 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
 +           class=\\"absolute w-full h-full\\"
 +           data-testid=\\"current-clip-view\\"
 +           height=\\"154\\"
-+           style=\\"width: 784px; height: 154px; transform: scale(1); transform-origin: left top;\\"
-+           width=\\"784\\"
++           style=\\"width: 1024px; height: 154px; transform: scale(1); transform-origin: left top;\\"
++           width=\\"1024\\"
 +         />
 +         <div
 +           class=\\"absolute w-[1px] bg-blue-400 h-full\\"

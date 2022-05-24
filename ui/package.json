@@ -23,7 +23,7 @@
     "prettier:fix": "prettier --write .",
     "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint:fix": "eslint --fix . --ext .js,.jsx,.ts,.tsx",
-    "jest": "TZ=UTC jest",
+    "jest": "TZ=UTC jest .",
     "build-and-jest": "run-s dev:build-core jest",
     "test": "run-p prettier eslint build-and-jest"
   },
