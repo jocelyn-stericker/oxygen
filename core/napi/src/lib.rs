@@ -8,9 +8,6 @@ use napi_derive::napi;
 use oxygen_core::audio_clip::{AudioClip, PlayHandle, RecordHandle, StreamHandle};
 use oxygen_core::db::{ClipMeta, Db};
 
-#[cfg(windows)]
-use windows::Win32::System::Console::{AttachConsole, FreeConsole, ATTACH_PARENT_PROCESS};
-
 enum Tab {
     Record {
         handle: Option<RecordHandle>,
@@ -70,15 +67,6 @@ impl From<&AudioClip> for JsClipMeta {
 impl UiState {
     #[napi(constructor)]
     pub fn new(update_cb: JsFunction, in_memory: bool) -> Result<UiState> {
-        #[cfg(windows)]
-        {
-            unsafe {
-                FreeConsole();
-                AttachConsole(ATTACH_PARENT_PROCESS);
-            }
-            eprintln!("Testing...");
-        }
-
         Ok(UiState {
             tab: Tab::Record { handle: None },
             db: if in_memory {
