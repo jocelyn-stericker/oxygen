@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use log::{Log, Metadata, Record};
 use napi::{
     bindgen_prelude::Buffer,
     threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
@@ -63,10 +64,38 @@ impl From<&AudioClip> for JsClipMeta {
     }
 }
 
+struct JsLogger(ThreadsafeFunction<String, ErrorStrategy::Fatal>);
+
+impl Log for JsLogger {
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        metadata.level() <= log::max_level()
+    }
+
+    fn log(&self, record: &Record) {
+        if !self.enabled(record.metadata()) {
+            return;
+        }
+
+        self.0.call(
+            std::format!("{}", record.args()),
+            ThreadsafeFunctionCallMode::NonBlocking,
+        );
+    }
+
+    fn flush(&self) {}
+}
+
 #[napi]
 impl UiState {
     #[napi(constructor)]
-    pub fn new(update_cb: JsFunction, in_memory: bool) -> Result<UiState> {
+    pub fn new(update_cb: JsFunction, log_cb: JsFunction, in_memory: bool) -> Result<UiState> {
+        let logger = Box::new(JsLogger(log_cb.create_threadsafe_function(0, |ctx| {
+            ctx.env.create_string_from_std(ctx.value).map(|v| vec![v])
+        })?));
+        let logger = Box::leak(logger);
+        log::set_logger(logger).map_err(|e| Error::from_reason(e.to_string()))?;
+        log::set_max_level(log::LevelFilter::Trace);
+
         Ok(UiState {
             tab: Tab::Record { handle: None },
             db: if in_memory {

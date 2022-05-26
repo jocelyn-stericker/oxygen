@@ -25,7 +25,7 @@
     "prettier:fix": "prettier --write .",
     "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint:fix": "eslint --fix . --ext .js,.jsx,.ts,.tsx",
-    "jest": "cross-env JEST_ELECTRON_RUNNER_DISABLE_PROCESS_DETACHMENT=1 jest .",
+    "jest": "jest .",
     "test": "run-p prettier eslint prod:core-and-jest"
   },
   "devDependencies": {
@@ -42,7 +42,6 @@
     "@typescript-eslint/eslint-plugin": "5.25.0",
     "@typescript-eslint/parser": "5.25.0",
     "classnames": "2.3.1",
-    "cross-env": "7.0.3",
     "electron": "18.2.3",
     "eslint": "8.15.0",
     "eslint-plugin-react": "7.29.4",

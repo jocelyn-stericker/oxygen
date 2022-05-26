@@ -72,7 +72,7 @@ pub fn encode_v1(clip: &AudioClip) -> Result<(u32, Vec<u8>)> {
                 output_i += pkt_len + 2;
             }
             Err(OpusError::Opus(OpusErrorCode::BufferTooSmall)) => {
-                eprintln!(
+                log::error!(
                     "Needed to increase buffer size, opus is compressing less well than expected."
                 );
                 output.resize(output.len() * 2, 0u8);

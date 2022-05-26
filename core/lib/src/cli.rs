@@ -69,6 +69,7 @@ enum Commands {
 }
 
 fn main() -> Result<()> {
+    env_logger::init();
     color_eyre::install()?;
     let args = Cli::parse();
     let db = Db::open()?;
@@ -174,7 +175,7 @@ fn main() -> Result<()> {
                 }
             }
 
-            eprintln!("{}", folder);
+            eprintln!("Exported to {}", folder);
         }
     }
 

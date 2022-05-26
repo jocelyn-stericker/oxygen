@@ -160,14 +160,15 @@ impl AudioClip {
     }
 
     pub fn record(name: String) -> Result<RecordHandle> {
-        eprintln!("Record 1");
+        log::debug!("Does stdout work?");
+        log::debug!("Record 1");
         let host = cpal::default_host();
-        eprintln!("Record 2");
+        log::debug!("Record 2");
         let device = host
             .default_input_device()
             .ok_or_else(|| eyre!("No input device"))?;
-        eprintln!("Record 3");
-        println!("Input device: {}", device.name()?);
+        log::debug!("Record 3");
+        log::info!("Input device: {}", device.name()?);
         let config = device.default_input_config()?;
 
         let clip = AudioClip {
@@ -180,9 +181,9 @@ impl AudioClip {
         let clip = Arc::new(Mutex::new(Some(RecordState { clip })));
         let clip_2 = clip.clone();
 
-        println!("Begin recording...");
+        log::info!("Begin recording...");
         let err_fn = move |err| {
-            eprintln!("an error occurred on stream: {}", err);
+            log::error!("an error occurred on stream: {}", err);
         };
 
         let channels = config.channels();
@@ -351,10 +352,10 @@ impl AudioClip {
         let device = host
             .default_output_device()
             .ok_or_else(|| eyre!("No output device"))?;
-        println!("Output device: {}", device.name()?);
+        log::info!("Output device: {}", device.name()?);
         let config = device.default_output_config()?;
 
-        println!("Begin playback...");
+        log::info!("Begin playback...");
 
         let sample_rate = config.sample_rate().0;
         let state = PlaybackState {
@@ -370,7 +371,7 @@ impl AudioClip {
         let channels = config.channels();
 
         let err_fn = move |err| {
-            eprintln!("an error occurred on stream: {}", err);
+            log::error!("an error occurred on stream: {}", err);
         };
 
         fn write_output_data<T>(output: &mut [T], channels: u16, writer: &PlaybackStateHandle)
