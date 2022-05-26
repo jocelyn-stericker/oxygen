@@ -44,6 +44,8 @@ jobs:
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
+          Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone'
+          Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone' -Name Value -Value Allow
           powershell sound-ci-helpers-windows/setup_sound.ps1
           Get-PnpDevice -Class AudioEndpoint | fl
           net stop audiosrv
