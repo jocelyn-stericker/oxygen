@@ -93,7 +93,7 @@ impl UiState {
             ctx.env.create_string_from_std(ctx.value).map(|v| vec![v])
         })?));
         let logger = Box::leak(logger);
-        log::set_logger(logger).map_err(|e| Error::from_reason(e.to_string()))?;
+        log::set_logger(logger).map_err(|e| Error::from_reason(format!("{:?}", e)))?;
         log::set_max_level(log::LevelFilter::Trace);
 
         Ok(UiState {
@@ -103,7 +103,7 @@ impl UiState {
             } else {
                 Db::open()
             }
-            .map_err(|e| Error::from_reason(e.to_string()))?,
+            .map_err(|e| Error::from_reason(format!("{:?}", e)))?,
             deleted_clip: None,
             update_cb: update_cb
                 .create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?,
@@ -114,7 +114,7 @@ impl UiState {
     pub fn get_clips(&self) -> Result<Vec<JsClipMeta>> {
         self.db
             .list()
-            .map_err(|e| Error::from_reason(e.to_string()))
+            .map_err(|e| Error::from_reason(format!("{:?}", e)))
             .map(|clips| clips.into_iter().map(JsClipMeta::from).collect())
     }
 
@@ -144,7 +144,7 @@ impl UiState {
         if let Some(audio_clip) = self
             .db
             .load_by_id(id as usize)
-            .map_err(|e| Error::from_reason(e.to_string()))?
+            .map_err(|e| Error::from_reason(format!("{:?}", e)))?
         {
             self.tab = Tab::Clip {
                 audio_clip,
@@ -168,7 +168,7 @@ impl UiState {
         if let Tab::Clip { audio_clip, handle } = &mut self.tab {
             let new_handle = audio_clip
                 .play()
-                .map_err(|e| Error::from_reason(e.to_string()))?;
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
             let on_done: ThreadsafeFunction<(), ErrorStrategy::Fatal> =
                 on_done.create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?;
@@ -195,7 +195,7 @@ impl UiState {
         if let Tab::Record { handle } = &mut self.tab {
             let name = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
             let new_handle =
-                AudioClip::record(name).map_err(|e| Error::from_reason(e.to_string()))?;
+                AudioClip::record(name).map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
             *handle = Some(new_handle);
 
@@ -214,7 +214,7 @@ impl UiState {
                     let mut audio_clip = handle.stop();
                     self.db
                         .save(&mut audio_clip)
-                        .map_err(|e| Error::from_reason(e.to_string()))?;
+                        .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
                     self.tab = Tab::Clip {
                         audio_clip,
@@ -245,7 +245,7 @@ impl UiState {
             if let Some(id) = audio_clip.id {
                 self.db
                     .delete_by_id(id)
-                    .map_err(|e| Error::from_reason(e.to_string()))?;
+                    .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
                 audio_clip.id = None;
                 self.deleted_clip = Some(audio_clip);
             } else {
@@ -263,7 +263,7 @@ impl UiState {
         if let Some(mut audio_clip) = self.deleted_clip.take() {
             self.db
                 .save(&mut audio_clip)
-                .map_err(|e| Error::from_reason(e.to_string()))?;
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
             self.tab = Tab::Clip {
                 audio_clip,
@@ -292,7 +292,7 @@ impl UiState {
 
             self.db
                 .rename_by_id(*id, &new_name)
-                .map_err(|e| Error::from_reason(e.to_string()))?;
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
         } else {
             return Err(Error::from_reason("No clip selected"));
         }
