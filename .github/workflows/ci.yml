@@ -44,12 +44,10 @@ jobs:
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
-          Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone'
-          Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Privacy\LetAppsAccessMicrophone'
-          powershell sound-ci-helpers-windows/setup_sound.ps1
-          Get-PnpDevice -Class AudioEndpoint | fl
-          net stop audiosrv
           net start audiosrv
+          Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Privacy\LetAppsAccessMicrophone' -Name value -Value 1
+          powershell sound-ci-helpers-windows/setup_sound.ps1
+
           Get-PnpDevice -Class AudioEndpoint | fl
           Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone'
           Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Privacy\LetAppsAccessMicrophone'
