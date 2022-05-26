@@ -45,12 +45,14 @@ jobs:
       - name: Install deps (windows)
         run: |
           Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone'
-          Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone' -Name Value -Value Allow
+          Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Privacy\LetAppsAccessMicrophone'
           powershell sound-ci-helpers-windows/setup_sound.ps1
           Get-PnpDevice -Class AudioEndpoint | fl
           net stop audiosrv
           net start audiosrv
           Get-PnpDevice -Class AudioEndpoint | fl
+          Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone'
+          Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Privacy\LetAppsAccessMicrophone'
         if: matrix.os == 'windows-2019'
       - name: test (core)
         run: cargo test --release
