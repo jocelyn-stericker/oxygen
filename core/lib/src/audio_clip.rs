@@ -160,7 +160,6 @@ impl AudioClip {
     }
 
     pub fn record(name: String) -> Result<RecordHandle> {
-        log::debug!("Does stdout work?");
         log::debug!("Record 1");
         let host = cpal::default_host();
         log::debug!("Record 2");
@@ -170,6 +169,7 @@ impl AudioClip {
         log::debug!("Record 3");
         log::info!("Input device: {}", device.name()?);
         let config = device.default_input_config()?;
+        log::debug!("{:?}", config);
 
         let clip = AudioClip {
             id: None,
