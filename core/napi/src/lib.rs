@@ -337,6 +337,10 @@ impl UiState {
             Tab::Clip { audio_clip, .. } => audio_clip,
         };
 
+        if width == 0 || height == 0 {
+            return Ok(Some(vec![].into()));
+        }
+
         let columns = clip.render_waveform((0, clip.num_samples()), width);
         let mut buffer = vec![0; width * height * 4];
 

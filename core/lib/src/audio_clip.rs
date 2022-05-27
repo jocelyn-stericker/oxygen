@@ -459,9 +459,9 @@ impl AudioClip {
                 let start_sample = (min_t + samples_per_pixel * (pixel_i as f32)).floor() as usize;
                 let end_sample = ((min_t + samples_per_pixel * ((pixel_i + 1) as f32)).floor()
                     as usize)
-                    .min(self.samples.len() - 1);
+                    .min(self.samples.len());
 
-                for sample in &self.samples[start_sample..=end_sample] {
+                for sample in &self.samples[start_sample..end_sample] {
                     min = min.min(*sample);
                     max = max.max(*sample);
                 }
@@ -484,5 +484,25 @@ impl AudioClip {
 
     pub fn num_samples(&self) -> usize {
         self.samples.len()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_render_with_zero_samples() {
+        let clip = AudioClip {
+            id: Some(1),
+            name: "Name".into(),
+            date: Utc::now(),
+            samples: vec![],
+            sample_rate: 44100,
+        };
+        assert_eq!(clip.render_waveform((0, 0), 100).len(), 100);
+        assert_eq!(clip.render_waveform((0, 0), 0).len(), 0);
+        assert_eq!(clip.render_waveform((100, 0), 0).len(), 0);
+        assert_eq!(clip.render_waveform((100, 200), 100).len(), 100);
     }
 }
