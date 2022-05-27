@@ -40,7 +40,7 @@ jobs:
         run: npm version 0.0.1-${{ github.sha }}
         working-directory: ./ui
       - name: Install deps (ubuntu)
-        run: sudo apt-get install -y libasound2-dev
+        run: sudo apt-get install -y libasound2-dev xvfb
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
@@ -64,6 +64,11 @@ jobs:
       - name: test (ui)
         run: npm test
         working-directory: ./ui
+        if: matrix.os != 'ubuntu-20.04'
+      - name: test (ui, ubuntu)
+        run: xvfb-run npm test
+        working-directory: ./ui
+        if: matrix.os == 'ubuntu-20.04'
       - name: make (ui)
         if: github.event_name == 'pull_request'
         run: npm run prod:make
