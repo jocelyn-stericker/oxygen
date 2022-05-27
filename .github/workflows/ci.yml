@@ -46,6 +46,8 @@ jobs:
           pactl list
           echo ====
           aplay -L
+          echo ====
+          aplay -l
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
