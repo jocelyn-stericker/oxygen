@@ -42,11 +42,8 @@ jobs:
       - name: Install deps (ubuntu)
         run: |
           sudo apt-get install -y libasound2-dev xvfb pulseaudio pulseaudio-utils libportaudio2 dbus-x11 alsa-utils
-          dbus-launch pulseaudio --start
+          pulseaudio -D --start
           pactl list
-          xvfb-run arecord -f cd -d 5 test-mic.wav
-          ls -ho test-mic.wav
-          xvfb-run aplay test-mic.wav
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
