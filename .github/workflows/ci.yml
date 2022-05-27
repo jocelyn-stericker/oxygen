@@ -41,7 +41,7 @@ jobs:
         working-directory: ./ui
       - name: Install deps (ubuntu)
         run: |
-          sudo apt-get install -y libasound2-dev xvfb pulseaudio libportaudio2 dbus-x11
+          sudo apt-get install -y libasound2-dev xvfb pulseaudio libportaudio2 dbus-x11 linux-modules-extra-`uname -r`
           sudo modprobe snd-dummy
           dbus-launch pulseaudio --start
           pactl list
