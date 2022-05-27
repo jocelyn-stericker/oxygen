@@ -41,8 +41,9 @@ jobs:
         working-directory: ./ui
       - name: Install deps (ubuntu)
         run: |
-          sudo apt-get install -y libasound2-dev xvfb pulseaudio pulseaudio-utils libportaudio2 dbus-x11 alsa-utils
+          sudo apt-get install -y libasound2-dev xvfb pulseaudio pulseaudio-utils libportaudio2 dbus-x11 alsa-utils jackd
           pulseaudio -D --start
+          jackd -d dummy &
           pactl list
           echo ====
           aplay -L
