@@ -40,7 +40,9 @@ jobs:
         run: npm version 0.0.1-${{ github.sha }}
         working-directory: ./ui
       - name: Install deps (ubuntu)
-        run: sudo apt-get install -y libasound2-dev xvfb
+        run: |
+          sudo apt-get install -y libasound2-dev xvfb pulseaudio libportaudio2 dbus-x11
+          dbus-launch pulseaudio --start
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
