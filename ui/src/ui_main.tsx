@@ -6,15 +6,27 @@ import ClipList from "./clip_list";
 import RecordTab from "./record_tab";
 import CurrentClip from "./current_clip";
 
-function handleLog(log: string) {
-  console.log(log);
+function nativeLog(level: string, log: string) {
+  if (level === "error") {
+    console.error(log);
+  } else if (level === "trace") {
+    console.trace(log);
+  } else if (level === "warn") {
+    console.warn(log);
+  } else if (level === "info") {
+    console.info(log);
+  } else if (level === "debug") {
+    console.debug(log);
+  } else {
+    console.log(log, `(Note: unknown log level ${level}`);
+  }
 }
 
 export default function Main({ inMemory }: { inMemory: boolean }) {
   // Hack to force a re-render when the state changes.
   const [, forceUpdate] = useReducer(() => ({}), []);
   const [uiState] = useState(
-    () => new UiState(forceUpdate, handleLog, inMemory)
+    () => new UiState(forceUpdate, nativeLog, inMemory)
   );
   const toaster = useRef<ToasterInterface>(null);
 

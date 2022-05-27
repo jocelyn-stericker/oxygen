@@ -32,7 +32,13 @@ export default function CurrentClip({
   const canvasContainer = useRef<HTMLDivElement>(null);
 
   const redraw = useCallback(() => {
-    const rect = canvas.current.parentElement.getBoundingClientRect();
+    const parent = canvas.current.parentElement;
+    if (!parent) {
+      // called one last time on dismount, before the observer disconnects.
+      return;
+    }
+
+    const rect = parent.getBoundingClientRect();
     canvas.current.width = rect.width * devicePixelRatio;
     canvas.current.height = rect.height * devicePixelRatio;
     canvas.current.style.width = `${rect.width * devicePixelRatio}px`;

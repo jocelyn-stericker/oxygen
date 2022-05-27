@@ -2,7 +2,7 @@
 
 Oxygen is a voice journal and audio analysis toolkit for people who want to
 change the way their voice comes across. Or rather, it will be. This is still
-in very early development. 
+in very early development.
 
 You can watch me code this at https://www.youtube.com/c/JocelynStericker
 
@@ -104,6 +104,31 @@ To run the UI:
 cd ./ui
 npm install
 npm start
+```
+
+## Tests
+
+To run UI and integration tests, as well as lints, run:
+
+```
+cd ./ui
+npm test
+```
+
+You can also run jest directly with:
+
+```
+cd ./ui
+npm run dev:build-core
+npm run jest
+```
+
+Or in watch mode with:
+
+```
+cd ./ui
+npm run dev:build-core
+npm run jest -- --watch`.
 ```
 
 ## Building the app in release mode

@@ -25,6 +25,7 @@ describe("app [integration]", () => {
     fireEvent.click(startRecording);
 
     let nextFragment = app.asFragment();
+    const initialFragment = nextFragment;
     expect(nextFragment).toMatchSnapshot("1 initial");
     let prevFragment = nextFragment;
 
@@ -65,15 +66,18 @@ describe("app [integration]", () => {
     fireEvent.click(play);
 
     const pause = await app.findByRole("button", { name: "Pause" });
-    nextFragment = app.asFragment();
-    expect(diff(prevFragment, nextFragment)).toMatchSnapshot("3 playing");
-    prevFragment = nextFragment;
+    await app.findByRole("button", { name: "Pause" });
 
     fireEvent.click(pause);
 
-    await app.findByRole("button", { name: "Play" });
+    fireEvent.click(
+      app.getByRole("tab", { name: "Record New Clip", selected: false })
+    );
+    await app.findByRole("tab", { name: "Record New Clip", selected: true });
+
     nextFragment = app.asFragment();
-    expect(diff(prevFragment, nextFragment)).toMatchSnapshot("4 paused");
-    prevFragment = nextFragment;
+    expect(diff(initialFragment, nextFragment)).toMatchSnapshot(
+      "3 delta from initial"
+    );
   });
 });

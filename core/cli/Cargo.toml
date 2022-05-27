@@ -1,21 +1,17 @@
 [package]
-name = "oxygen-core"
+name = "oxygen-cli"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cpal = "0.13.5"
-color-eyre = "0.6.1"
-dasp = {version = "0.11.0", features = ["signal", "interpolate", "interpolate-linear"]}
-directories = "4.0.1"
+oxygen-core = { path = "../lib" }
 chrono = "0.4.19"
-audiopus = "0.3.0-rc.0"
+clap = { version = "3.1.18", features = ["derive"] }
+color-eyre = "0.6.1"
+ctrlc = "3.2.2"
 symphonia = {version = "0.5.0", features = ["isomp4", "mp3", "aac"] }
 hound = "3.4.0"
 log = "0.4.17"
-
-[dependencies.rusqlite]
-version = "0.27.0"
-features = ["bundled"]
+env_logger = "0.9.0"
