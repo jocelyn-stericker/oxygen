@@ -26,7 +26,9 @@ pub struct RecordHandle {
 impl RecordHandle {
     pub fn stop(self) -> AudioClip {
         drop(self.stream);
-        self.clip.lock().unwrap().take().unwrap().clip
+        let clip = self.clip.lock().unwrap().take().unwrap().clip;
+        log::info!("Recorded clip has {} samples", clip.samples.len());
+        clip
     }
 }
 
