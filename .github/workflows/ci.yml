@@ -48,6 +48,8 @@ jobs:
           aplay -L
           echo ====
           aplay -l
+          echo ====
+          amixer -i
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
@@ -73,7 +75,7 @@ jobs:
         working-directory: ./ui
         if: matrix.os != 'ubuntu-20.04'
       - name: test (ui, ubuntu)
-        run: xvfb-run npm test
+        run: sudo xvfb-run npm test
         working-directory: ./ui
         if: matrix.os == 'ubuntu-20.04'
       - name: make (ui)
