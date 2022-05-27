@@ -37,9 +37,8 @@ describe("app [integration]", () => {
     prevFragment = nextFragment;
 
     await act(async () => {
-      await new Promise((res) => setTimeout(res, 200));
+      await new Promise((res) => setTimeout(res, 800));
       fireEvent.click(stopRecording);
-      await new Promise((res) => setTimeout(res, 200));
     });
 
     const play = await app.findByRole("button", { name: "Play" });
