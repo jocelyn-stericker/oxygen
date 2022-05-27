@@ -43,6 +43,7 @@ jobs:
         run: |
           sudo apt-get install -y libasound2-dev xvfb pulseaudio libportaudio2 dbus-x11
           dbus-launch pulseaudio --start
+          pactl list
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
