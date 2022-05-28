@@ -1,3 +1,10 @@
+/**
+ * This is the minimal code that runs in Electron's main thread.
+ *
+ * It opens a browser window. In addition to the UI code, the native Rust code
+ * runs in the renderer thread, not the main thread.
+ */
+
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
 
@@ -10,6 +17,7 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       contextIsolation: false,
+      nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"),
     },
   });

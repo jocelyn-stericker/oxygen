@@ -1,7 +1,7 @@
 use chrono::prelude::*;
-use color_eyre::eyre::{eyre, Result};
+use color_eyre::eyre::{eyre, Result, WrapErr};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::Stream;
+use cpal::{Host, HostUnavailable, Stream};
 use dasp::{interpolate::linear::Linear, signal, Signal};
 use std::fs::File;
 use std::path::Path;
@@ -26,7 +26,9 @@ pub struct RecordHandle {
 impl RecordHandle {
     pub fn stop(self) -> AudioClip {
         drop(self.stream);
-        self.clip.lock().unwrap().take().unwrap().clip
+        let clip = self.clip.lock().unwrap().take().unwrap().clip;
+        log::info!("Recorded clip has {} samples", clip.samples.len());
+        clip
     }
 }
 
@@ -129,10 +131,33 @@ pub struct AudioClip {
     pub sample_rate: u32,
 }
 
-#[derive(Debug)]
 pub struct DisplayColumn {
     pub min: f32,
     pub max: f32,
+}
+
+#[derive(Clone, Copy)]
+pub enum AudioBackend {
+    Default,
+    #[cfg(feature = "jack")]
+    Jack,
+}
+
+impl Default for AudioBackend {
+    fn default() -> Self {
+        AudioBackend::Default
+    }
+}
+
+impl AudioBackend {
+    fn host(&self) -> Result<Host, HostUnavailable> {
+        match self {
+            AudioBackend::Default => Ok(cpal::default_host()),
+
+            #[cfg(feature = "jack")]
+            AudioBackend::Jack => cpal::host_from_id(cpal::HostId::Jack),
+        }
+    }
 }
 
 impl AudioClip {
@@ -159,12 +184,12 @@ impl AudioClip {
         }
     }
 
-    pub fn record(name: String) -> Result<RecordHandle> {
-        let host = cpal::default_host();
+    pub fn record(host: AudioBackend, name: String) -> Result<RecordHandle> {
+        let host = host.host().wrap_err("Could not open specified host")?;
         let device = host
             .default_input_device()
             .ok_or_else(|| eyre!("No input device"))?;
-        println!("Input device: {}", device.name()?);
+        log::info!("Input device: {}", device.name()?);
         let config = device.default_input_config()?;
 
         let clip = AudioClip {
@@ -177,9 +202,9 @@ impl AudioClip {
         let clip = Arc::new(Mutex::new(Some(RecordState { clip })));
         let clip_2 = clip.clone();
 
-        println!("Begin recording...");
+        log::info!("Begin recording...");
         let err_fn = move |err| {
-            eprintln!("an error occurred on stream: {}", err);
+            log::error!("an error occurred on stream: {}", err);
         };
 
         let channels = config.channels();
@@ -343,15 +368,15 @@ impl AudioClip {
         Ok(clip)
     }
 
-    pub fn play(&self) -> Result<PlayHandle> {
-        let host = cpal::default_host();
+    pub fn play(&self, host: AudioBackend) -> Result<PlayHandle> {
+        let host = host.host().wrap_err("Could not open specified host")?;
         let device = host
             .default_output_device()
             .ok_or_else(|| eyre!("No output device"))?;
-        println!("Output device: {}", device.name()?);
+        log::info!("Output device: {}", device.name()?);
         let config = device.default_output_config()?;
 
-        println!("Begin playback...");
+        log::info!("Begin playback...");
 
         let sample_rate = config.sample_rate().0;
         let state = PlaybackState {
@@ -367,7 +392,7 @@ impl AudioClip {
         let channels = config.channels();
 
         let err_fn = move |err| {
-            eprintln!("an error occurred on stream: {}", err);
+            log::error!("an error occurred on stream: {}", err);
         };
 
         fn write_output_data<T>(output: &mut [T], channels: u16, writer: &PlaybackStateHandle)
@@ -459,9 +484,9 @@ impl AudioClip {
                 let start_sample = (min_t + samples_per_pixel * (pixel_i as f32)).floor() as usize;
                 let end_sample = ((min_t + samples_per_pixel * ((pixel_i + 1) as f32)).floor()
                     as usize)
-                    .min(self.samples.len() - 1);
+                    .min(self.samples.len());
 
-                for sample in &self.samples[start_sample..=end_sample] {
+                for sample in &self.samples[start_sample..end_sample] {
                     min = min.min(*sample);
                     max = max.max(*sample);
                 }
@@ -484,5 +509,25 @@ impl AudioClip {
 
     pub fn num_samples(&self) -> usize {
         self.samples.len()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_render_with_zero_samples() {
+        let clip = AudioClip {
+            id: Some(1),
+            name: "Name".into(),
+            date: Utc::now(),
+            samples: vec![],
+            sample_rate: 44100,
+        };
+        assert_eq!(clip.render_waveform((0, 0), 100).len(), 100);
+        assert_eq!(clip.render_waveform((0, 0), 0).len(), 0);
+        assert_eq!(clip.render_waveform((100, 0), 0).len(), 0);
+        assert_eq!(clip.render_waveform((100, 200), 100).len(), 100);
     }
 }

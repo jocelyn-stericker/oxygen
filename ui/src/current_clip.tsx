@@ -1,17 +1,29 @@
-import { UiState } from "oxygen-core";
+import { JsClipMeta } from "oxygen-core";
 import cx from "classnames";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Pause, Play, Delete } from "./icons";
-import { ToasterInterface } from "./toaster";
 
 export default function CurrentClip({
-  uiState,
-  toaster,
+  clip,
+  drawCurrentClipWaveform,
+  time,
+  timePercent,
+  streaming,
+  onPlay,
+  onStop,
+  onRename,
+  onDelete,
 }: {
-  uiState: UiState;
-  toaster: React.MutableRefObject<ToasterInterface>;
+  clip: JsClipMeta;
+  drawCurrentClipWaveform: (width: number, height: number) => Buffer | null;
+  time: number;
+  timePercent: number;
+  streaming: boolean;
+  onPlay: (cb: () => void) => void;
+  onStop: () => void;
+  onRename: (name: string) => void;
+  onDelete: () => void;
 }) {
-  const clip = uiState.currentClip;
   const [temporaryName, setTemporaryName] = useState(clip.name);
   useEffect(() => {
     setTemporaryName(clip.name);
@@ -20,8 +32,13 @@ export default function CurrentClip({
   const canvasContainer = useRef<HTMLDivElement>(null);
 
   const redraw = useCallback(() => {
-    console.time("draw");
-    const rect = canvas.current.parentElement.getBoundingClientRect();
+    const parent = canvas.current.parentElement;
+    if (!parent) {
+      // called one last time on dismount, before the observer disconnects.
+      return;
+    }
+
+    const rect = parent.getBoundingClientRect();
     canvas.current.width = rect.width * devicePixelRatio;
     canvas.current.height = rect.height * devicePixelRatio;
     canvas.current.style.width = `${rect.width * devicePixelRatio}px`;
@@ -29,7 +46,7 @@ export default function CurrentClip({
     canvas.current.style.transform = `scale(${1 / devicePixelRatio})`;
     canvas.current.style.transformOrigin = "top left";
 
-    const buffer = uiState.drawCurrentClipWaveform(
+    const buffer = drawCurrentClipWaveform(
       canvas.current.width,
       canvas.current.height
     );
@@ -42,8 +59,7 @@ export default function CurrentClip({
     );
     const context = canvas.current.getContext("2d");
     context.putImageData(image, 0, 0);
-    console.timeEnd("draw");
-  }, [uiState]);
+  }, [drawCurrentClipWaveform]);
 
   useEffect(() => {
     // ResizeObserver calls immediately on observe, so we need to work around that.
@@ -61,13 +77,13 @@ export default function CurrentClip({
     };
   }, [redraw]);
 
-  useEffect(redraw, [redraw, uiState.currentClipId]);
-  console.log("render", uiState.time);
+  useEffect(redraw, [redraw, clip.id]);
 
   return (
     <div className="flex flex-col flex-grow">
       <div className="flex flex-row">
         <input
+          data-testid="current-clip-name"
           className="self-center p-2 m-2 text-m font-bold overflow-ellipses overflow-hidden border-2 border-purple-200 rounded-md focus:border-purple-900 outline-purple-900 text-purple-900 flex-grow transition-all"
           value={temporaryName}
           onChange={(ev) => {
@@ -75,45 +91,18 @@ export default function CurrentClip({
           }}
           onBlur={() => {
             const name = temporaryName.trim();
-            if (name != "") {
-              try {
-                if (name !== clip.name) {
-                  uiState.renameCurrentClip(name);
-                  toaster.current.info(`Renamed "${clip.name}" to "${name}"`);
-                }
-              } catch (err) {
-                if (err instanceof Error) {
-                  // TODO: stable interface for error messages and/or tests
-                  if (err.message == "UNIQUE constraint failed: clips.name") {
-                    toaster.current.error(
-                      "This name is taken by another clip."
-                    );
-                  } else {
-                    toaster.current.error(
-                      "Something went wrong when renaming this clip."
-                    );
-                  }
-                }
-              }
+            if (name !== "") {
+              onRename(name);
             }
-            setTemporaryName(uiState.currentClip.name);
+            setTemporaryName(clip.name);
           }}
         />
         <button
+          data-testid="current-clip-delete"
           className="p-2 m-2 ml-0 text-purple-900 cursor-pointer border-2 border-transparent hover:border-red-900 rounded-full hover:bg-red-100 hover:text-red-900"
           title="Delete this clip"
           onClick={(ev) => {
-            uiState.deleteCurrentClip();
-            toaster.current.info(
-              `Deleted "${clip.name}"`,
-              {
-                text: "Undo",
-                cb: () => {
-                  uiState.undeleteCurrentClip();
-                },
-              },
-              "undoDeleteCurrentClip"
-            );
+            onDelete();
             ev.preventDefault();
           }}
         >
@@ -121,36 +110,45 @@ export default function CurrentClip({
         </button>
       </div>
       <div className="flex-grow relative overflow-hidden" ref={canvasContainer}>
-        <canvas className="absolute w-full h-full" ref={canvas} />
+        <canvas
+          data-testid="current-clip-view"
+          className="absolute w-full h-full"
+          ref={canvas}
+        />
         <div
+          data-testid="current-clip-cursor"
           className="absolute w-[1px] bg-blue-400 h-full"
-          style={{ left: `${uiState.timePercent * 100}%` }}
+          style={{ left: `${timePercent * 100}%` }}
         />
       </div>
       <div className="flex flex-row mb-4">
-        <div className="flex self-center font-mono text-purple-900 mx-2 w-20">
-          {uiState.time.toFixed(2).padStart(6, "0")}
+        <div
+          className="flex self-center font-mono text-purple-900 mx-2 w-20"
+          data-testid="current-clip-time"
+        >
+          {time.toFixed(2).padStart(6, "0")}
         </div>
         <div className="flex-grow" />
         <button
+          data-testid="current-clip-toggle-playback"
           className={cx(
             "p-4 rounded-md m-auto text-lg flex border-2",
-            uiState.streaming
+            streaming
               ? "bg-white border-purple-900 text-purple-900 hover:bg-purple-100"
               : "bg-purple-900 text-white hover:bg-purple-800"
           )}
           onClick={(ev) => {
             ev.preventDefault();
-            if (!uiState.streaming) {
-              uiState.play(() => {
-                uiState.stop();
+            if (!streaming) {
+              onPlay(() => {
+                onStop();
               });
             } else {
-              uiState.stop();
+              onStop();
             }
           }}
         >
-          {uiState.streaming ? (
+          {streaming ? (
             <>
               <Pause />
               <span className="w-2" />

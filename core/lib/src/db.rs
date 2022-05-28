@@ -25,12 +25,21 @@ impl Db {
         let db_file_path = data_dir.join("oxygen.sqlite");
 
         if Path::new("oxygen.sqlite").exists() && !db_file_path.exists() {
-            eprintln!("Migration: moving oxygen.sqlite to {:?}", db_file_path);
+            log::info!("Migration: moving oxygen.sqlite to {:?}", db_file_path);
             std::fs::copy("oxygen.sqlite", &db_file_path)?;
             std::fs::remove_file("oxygen.sqlite")?;
         }
 
         let connection = Connection::open(db_file_path)?;
+        Self::from_connection(connection)
+    }
+
+    pub fn in_memory() -> Result<Db> {
+        let connection = Connection::open_in_memory()?;
+        Self::from_connection(connection)
+    }
+
+    fn from_connection(connection: Connection) -> Result<Db> {
         let user_version: u32 =
             connection.query_row("SELECT user_version FROM pragma_user_version", [], |r| {
                 r.get(0)
@@ -39,7 +48,7 @@ impl Db {
         connection.pragma_update(None, "user_version", 2)?;
 
         if user_version < 1 {
-            eprintln!("Migration: init schema...");
+            log::info!("Migration: init schema...");
             connection.execute(
                 "
                 CREATE TABLE IF NOT EXISTS clips (
@@ -55,7 +64,7 @@ impl Db {
         }
 
         if user_version < 2 {
-            eprintln!("Migration: updating schema to version 2...");
+            log::info!("Migration: updating schema to version 2...");
             let mut stmt =
                 connection.prepare("SELECT id, name, date, sample_rate, samples FROM clips")?;
             let clip_iter = stmt.query_map([], |row| {

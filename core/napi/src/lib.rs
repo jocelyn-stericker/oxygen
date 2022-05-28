@@ -1,11 +1,14 @@
 use chrono::prelude::*;
+use log::{Level, Log, Metadata, Record};
 use napi::{
     bindgen_prelude::Buffer,
-    threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-    Env, Error, JsDate, JsFunction, JsUnknown, Result,
+    threadsafe_function::{
+        ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
+    },
+    Env, Error, JsDate, JsFunction, JsString, JsUnknown, Result,
 };
 use napi_derive::napi;
-use oxygen_core::audio_clip::{AudioClip, PlayHandle, RecordHandle, StreamHandle};
+use oxygen_core::audio_clip::{AudioBackend, AudioClip, PlayHandle, RecordHandle, StreamHandle};
 use oxygen_core::db::{ClipMeta, Db};
 
 enum Tab {
@@ -24,6 +27,7 @@ pub struct UiState {
     db: Db,
     deleted_clip: Option<AudioClip>,
     update_cb: ThreadsafeFunction<(), ErrorStrategy::Fatal>,
+    host: AudioBackend,
 }
 
 #[napi]
@@ -63,16 +67,74 @@ impl From<&AudioClip> for JsClipMeta {
     }
 }
 
+struct JsLogger(ThreadsafeFunction<(String, String), ErrorStrategy::Fatal>);
+
+impl Log for JsLogger {
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        metadata.level() <= log::max_level()
+    }
+
+    fn log(&self, record: &Record) {
+        if !self.enabled(record.metadata()) {
+            return;
+        }
+
+        let level = match record.level() {
+            Level::Error => "error",
+            Level::Trace => "trace",
+            Level::Warn => "warn",
+            Level::Info => "info",
+            Level::Debug => "debug",
+        }
+        .to_owned();
+
+        self.0.call(
+            (level, std::format!("{}", record.args())),
+            ThreadsafeFunctionCallMode::NonBlocking,
+        );
+    }
+
+    fn flush(&self) {}
+}
+
 #[napi]
 impl UiState {
     #[napi(constructor)]
-    pub fn new(update_cb: JsFunction) -> Result<UiState> {
+    pub fn new(update_cb: JsFunction, log_cb: JsFunction, in_memory: bool) -> Result<UiState> {
+        let logger = Box::new(JsLogger(log_cb.create_threadsafe_function(
+            0,
+            |ctx: ThreadSafeCallContext<(String, String)>| {
+                Ok(vec![
+                    ctx.env.create_string_from_std(ctx.value.0)?,
+                    ctx.env.create_string_from_std(ctx.value.1)?,
+                ]) as Result<Vec<JsString>>
+            },
+        )?));
+        let logger = Box::leak(logger);
+        log::set_logger(logger).map_err(|e| Error::from_reason(format!("{:?}", e)))?;
+        log::set_max_level(log::LevelFilter::Trace);
+
         Ok(UiState {
             tab: Tab::Record { handle: None },
-            db: Db::open().map_err(|e| Error::from_reason(e.to_string()))?,
+            db: if in_memory {
+                Db::in_memory()
+            } else {
+                Db::open()
+            }
+            .map_err(|e| Error::from_reason(format!("{:?}", e)))?,
             deleted_clip: None,
             update_cb: update_cb
                 .create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?,
+
+            #[cfg(feature = "jack")]
+            host: if std::env::var("OXYGEN_NAPI_USE_JACK").unwrap_or_default() == "1" {
+                AudioBackend::Jack
+            } else {
+                AudioBackend::Default
+            },
+
+            #[cfg(not(feature = "jack"))]
+            host: AudioBackend::Default,
         })
     }
 
@@ -80,7 +142,7 @@ impl UiState {
     pub fn get_clips(&self) -> Result<Vec<JsClipMeta>> {
         self.db
             .list()
-            .map_err(|e| Error::from_reason(e.to_string()))
+            .map_err(|e| Error::from_reason(format!("{:?}", e)))
             .map(|clips| clips.into_iter().map(JsClipMeta::from).collect())
     }
 
@@ -110,7 +172,7 @@ impl UiState {
         if let Some(audio_clip) = self
             .db
             .load_by_id(id as usize)
-            .map_err(|e| Error::from_reason(e.to_string()))?
+            .map_err(|e| Error::from_reason(format!("{:?}", e)))?
         {
             self.tab = Tab::Clip {
                 audio_clip,
@@ -133,8 +195,8 @@ impl UiState {
     pub fn play(&mut self, on_done: JsFunction) -> Result<()> {
         if let Tab::Clip { audio_clip, handle } = &mut self.tab {
             let new_handle = audio_clip
-                .play()
-                .map_err(|e| Error::from_reason(e.to_string()))?;
+                .play(self.host)
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
             let on_done: ThreadsafeFunction<(), ErrorStrategy::Fatal> =
                 on_done.create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?;
@@ -160,8 +222,8 @@ impl UiState {
     pub fn record(&mut self) -> Result<()> {
         if let Tab::Record { handle } = &mut self.tab {
             let name = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-            let new_handle =
-                AudioClip::record(name).map_err(|e| Error::from_reason(e.to_string()))?;
+            let new_handle = AudioClip::record(self.host, name)
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
             *handle = Some(new_handle);
 
@@ -180,7 +242,7 @@ impl UiState {
                     let mut audio_clip = handle.stop();
                     self.db
                         .save(&mut audio_clip)
-                        .map_err(|e| Error::from_reason(e.to_string()))?;
+                        .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
                     self.tab = Tab::Clip {
                         audio_clip,
@@ -211,7 +273,7 @@ impl UiState {
             if let Some(id) = audio_clip.id {
                 self.db
                     .delete_by_id(id)
-                    .map_err(|e| Error::from_reason(e.to_string()))?;
+                    .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
                 audio_clip.id = None;
                 self.deleted_clip = Some(audio_clip);
             } else {
@@ -229,7 +291,7 @@ impl UiState {
         if let Some(mut audio_clip) = self.deleted_clip.take() {
             self.db
                 .save(&mut audio_clip)
-                .map_err(|e| Error::from_reason(e.to_string()))?;
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
             self.tab = Tab::Clip {
                 audio_clip,
@@ -258,7 +320,7 @@ impl UiState {
 
             self.db
                 .rename_by_id(*id, &new_name)
-                .map_err(|e| Error::from_reason(e.to_string()))?;
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
         } else {
             return Err(Error::from_reason("No clip selected"));
         }
@@ -285,6 +347,10 @@ impl UiState {
             }
             Tab::Clip { audio_clip, .. } => audio_clip,
         };
+
+        if width == 0 || height == 0 {
+            return Ok(Some(vec![].into()));
+        }
 
         let columns = clip.render_waveform((0, clip.num_samples()), width);
         let mut buffer = vec![0; width * height * 4];

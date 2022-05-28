@@ -14,6 +14,7 @@ interface ToastAction {
   text: string;
   cb: () => void;
 }
+
 interface Toast {
   toastType: ToastType;
   id: number;
@@ -23,7 +24,18 @@ interface Toast {
 }
 
 export interface ToasterInterface {
+  /**
+   * Show an error toast.
+   *
+   * If uniqueKey is provided, any toasts with the same uniqueKey will be dismissed.
+   */
   error: (msg: string, action?: ToastAction, uniqueKey?: string) => void;
+
+  /**
+   * Show an info toast.
+   *
+   * If uniqueKey is provided, any toasts with the same uniqueKey will be dismissed.
+   */
   info: (msg: string, action?: ToastAction, uniqueKey?: string) => void;
 }
 
@@ -85,12 +97,16 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
             toast.toastType === "info" &&
               "text-blue-900 bg-blue-100 border-blue-300"
           )}
+          data-testid={`toast-${toast.id}`}
           key={toast.id}
         >
-          <div className="flex-grow">{toast.text}</div>
+          <div data-testid={`toast-label-${toast.id}`} className="flex-grow">
+            {toast.text}
+          </div>
           {toast.action && (
             <button
               className="cursor-pointer ml-4 font-bold inline opacity-50 hover:opacity-100"
+              data-testid={`action-toast-${toast.id}`}
               onClick={(ev) => {
                 ev.preventDefault();
                 const id = toast.id;
@@ -106,6 +122,7 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
 
           <button
             className="cursor-pointer ml-4 font-bold inline opacity-50 hover:opacity-100"
+            data-testid={`dismiss-toast-${toast.id}`}
             title="Dismiss"
             onClick={(ev) => {
               ev.preventDefault();
