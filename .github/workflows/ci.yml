@@ -69,7 +69,7 @@ jobs:
       - name: test (ui, ubuntu)
         run: |
           jackd -v -r -d dummy &
-          sudo xvfb-run npm run dev:core-and-jest-with-jack
+          xvfb-run npm run dev:core-and-jest-with-jack
         working-directory: ./ui
         if: matrix.os == 'ubuntu-20.04'
       - name: make (ui)
