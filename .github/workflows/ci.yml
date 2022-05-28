@@ -41,7 +41,7 @@ jobs:
         working-directory: ./ui
       - name: Install deps (ubuntu)
         run: |
-          sudo apt-get install -y libasound2-dev xvfb libportaudio2 jackd libjack0
+          sudo apt-get install -y libasound2-dev libportaudio2 jackd libjack0 libjack-dev
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
