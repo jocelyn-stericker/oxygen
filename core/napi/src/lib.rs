@@ -8,7 +8,7 @@ use napi::{
     Env, Error, JsDate, JsFunction, JsString, JsUnknown, Result,
 };
 use napi_derive::napi;
-use oxygen_core::audio_clip::{AudioClip, PlayHandle, RecordHandle, StreamHandle};
+use oxygen_core::audio_clip::{AudioBackend, AudioClip, PlayHandle, RecordHandle, StreamHandle};
 use oxygen_core::db::{ClipMeta, Db};
 
 enum Tab {
@@ -27,6 +27,7 @@ pub struct UiState {
     db: Db,
     deleted_clip: Option<AudioClip>,
     update_cb: ThreadsafeFunction<(), ErrorStrategy::Fatal>,
+    host: AudioBackend,
 }
 
 #[napi]
@@ -124,6 +125,16 @@ impl UiState {
             deleted_clip: None,
             update_cb: update_cb
                 .create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?,
+
+            #[cfg(feature = "jack")]
+            host: if std::env::var("OXYGEN_NAPI_USE_JACK").unwrap_or_default() == "1" {
+                AudioBackend::Jack
+            } else {
+                AudioBackend::Default
+            },
+
+            #[cfg(not(feature = "jack"))]
+            host: AudioBackend::Default,
         })
     }
 
@@ -184,7 +195,7 @@ impl UiState {
     pub fn play(&mut self, on_done: JsFunction) -> Result<()> {
         if let Tab::Clip { audio_clip, handle } = &mut self.tab {
             let new_handle = audio_clip
-                .play()
+                .play(self.host)
                 .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
             let on_done: ThreadsafeFunction<(), ErrorStrategy::Fatal> =
@@ -211,8 +222,8 @@ impl UiState {
     pub fn record(&mut self) -> Result<()> {
         if let Tab::Record { handle } = &mut self.tab {
             let name = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-            let new_handle =
-                AudioClip::record(name).map_err(|e| Error::from_reason(format!("{:?}", e)))?;
+            let new_handle = AudioClip::record(self.host, name)
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
             *handle = Some(new_handle);
 

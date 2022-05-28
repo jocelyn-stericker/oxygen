@@ -6,6 +6,9 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+jack = ["oxygen-core/jack"]
+
 [dependencies]
 oxygen-core = { path = "../lib" }
 napi = {version = "2.4.3", features = ["napi8"]}

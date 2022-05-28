@@ -3,10 +3,11 @@ name = "oxygen-core"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+jack = ["cpal/jack"]
 
 [dependencies]
-cpal = "0.13.5"
+cpal = { version = "0.13.5", features = [] }
 color-eyre = "0.6.1"
 dasp = {version = "0.11.0", features = ["signal", "interpolate", "interpolate-linear"]}
 directories = "4.0.1"
@@ -15,7 +16,4 @@ audiopus = "0.3.0-rc.0"
 symphonia = {version = "0.5.0", features = ["isomp4", "mp3", "aac"] }
 hound = "3.4.0"
 log = "0.4.17"
-
-[dependencies.rusqlite]
-version = "0.27.0"
-features = ["bundled"]
+rusqlite = { version = "0.27.0", features = ["bundled"] }

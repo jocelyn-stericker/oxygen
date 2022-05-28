@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use clap::{Parser, Subcommand};
 use color_eyre::eyre::{eyre, Result};
-use oxygen_core::audio_clip::AudioClip;
+use oxygen_core::audio_clip::{AudioBackend, AudioClip};
 use oxygen_core::db::Db;
 use std::{ffi::OsStr, path::Path, sync::mpsc::channel};
 
@@ -13,6 +13,14 @@ use std::{ffi::OsStr, path::Path, sync::mpsc::channel};
 struct Cli {
     #[clap(subcommand)]
     command: Commands,
+
+    #[cfg(feature = "jack")]
+    #[clap(global = true, long)]
+    /// On Linux, use the jack backend instead of the alsa backend.
+    ///
+    /// Note that this requires that the app was compiled with the "jack" feature
+    /// (e.g., `cargo run --features=jack -- --jack`)
+    jack: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -74,13 +82,22 @@ fn main() -> Result<()> {
     let args = Cli::parse();
     let db = Db::open()?;
 
+    #[cfg(feature = "jack")]
+    let host = match args.jack {
+        true => AudioBackend::Jack,
+        false => AudioBackend::Default,
+    };
+
+    #[cfg(not(feature = "jack"))]
+    let host = AudioBackend::Default;
+
     match args.command {
         Commands::Record { name } => {
             let name = name.unwrap_or_else(|| Local::now().format("%Y-%m-%d %H:%M:%S").to_string());
             if db.load(&name)?.is_some() {
                 return Err(eyre!("There is already a clip named {}", name));
             }
-            let handle = AudioClip::record(name)?;
+            let handle = AudioClip::record(host, name)?;
 
             let (tx, rx) = channel();
             ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))?;
@@ -107,7 +124,7 @@ fn main() -> Result<()> {
         }
         Commands::Play { name } => {
             if let Some(clip) = db.load(&name)? {
-                let handle = clip.play()?;
+                let handle = clip.play(host)?;
                 let (done_tx, done_rx) = channel::<()>();
                 handle.connect_done(move || {
                     done_tx.send(()).unwrap();

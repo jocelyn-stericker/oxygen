@@ -41,16 +41,7 @@ jobs:
         working-directory: ./ui
       - name: Install deps (ubuntu)
         run: |
-          sudo modinfo snd-aloop
-          echo ====
-          sudo apt-get install -y libasound2-dev xvfb libportaudio2 dbus-x11 alsa-utils jackd
-          jackd -d dummy --no-realtime &
-          echo ====
-          aplay -L
-          echo ====
-          aplay -l
-          echo ====
-          amixer -i
+          sudo apt-get install -y libasound2-dev xvfb libportaudio2 jackd
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
@@ -76,7 +67,9 @@ jobs:
         working-directory: ./ui
         if: matrix.os != 'ubuntu-20.04'
       - name: test (ui, ubuntu)
-        run: sudo xvfb-run npm test
+        run: |
+          jackd -v -r -d dummy &
+          sudo xvfb-run npm run dev:core-and-jest-with-jack
         working-directory: ./ui
         if: matrix.os == 'ubuntu-20.04'
       - name: make (ui)

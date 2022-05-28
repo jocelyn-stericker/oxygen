@@ -21,7 +21,9 @@
   ],
   "scripts": {
     "build": "napi build --platform --release",
-    "build:debug": "napi build --platform"
+    "build:debug": "napi build --platform",
+    "build:with-jack": "napi build --platform --release --features jack",
+    "build:debug-with-jack": "napi build --platform --features jack"
   },
   "devDependencies": {
     "@napi-rs/cli": "^2.0.0"

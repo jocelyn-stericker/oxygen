@@ -1,7 +1,7 @@
 use chrono::prelude::*;
-use color_eyre::eyre::{eyre, Result};
+use color_eyre::eyre::{eyre, Result, WrapErr};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::Stream;
+use cpal::{Host, HostUnavailable, Stream};
 use dasp::{interpolate::linear::Linear, signal, Signal};
 use std::fs::File;
 use std::path::Path;
@@ -131,10 +131,33 @@ pub struct AudioClip {
     pub sample_rate: u32,
 }
 
-#[derive(Debug)]
 pub struct DisplayColumn {
     pub min: f32,
     pub max: f32,
+}
+
+#[derive(Clone, Copy)]
+pub enum AudioBackend {
+    Default,
+    #[cfg(feature = "jack")]
+    Jack,
+}
+
+impl Default for AudioBackend {
+    fn default() -> Self {
+        AudioBackend::Default
+    }
+}
+
+impl AudioBackend {
+    fn host(&self) -> Result<Host, HostUnavailable> {
+        match self {
+            AudioBackend::Default => Ok(cpal::default_host()),
+
+            #[cfg(feature = "jack")]
+            AudioBackend::Jack => cpal::host_from_id(cpal::HostId::Jack),
+        }
+    }
 }
 
 impl AudioClip {
@@ -161,8 +184,8 @@ impl AudioClip {
         }
     }
 
-    pub fn record(name: String) -> Result<RecordHandle> {
-        let host = cpal::default_host();
+    pub fn record(host: AudioBackend, name: String) -> Result<RecordHandle> {
+        let host = host.host().wrap_err("Could not open specified host")?;
         let device = host
             .default_input_device()
             .ok_or_else(|| eyre!("No input device"))?;
@@ -345,8 +368,8 @@ impl AudioClip {
         Ok(clip)
     }
 
-    pub fn play(&self) -> Result<PlayHandle> {
-        let host = cpal::default_host();
+    pub fn play(&self, host: AudioBackend) -> Result<PlayHandle> {
+        let host = host.host().wrap_err("Could not open specified host")?;
         let device = host
             .default_output_device()
             .ok_or_else(|| eyre!("No output device"))?;
