@@ -41,7 +41,7 @@ jobs:
         working-directory: ./ui
       - name: Install deps (ubuntu)
         run: |
-          sudo apt-get install -y libasound2-dev libportaudio2 jackd libjack0 libjack-dev
+          sudo apt-get install -y libasound2-dev libportaudio2 jackd2 libjack0 libjack-dev
         if: matrix.os == 'ubuntu-20.04'
       - name: Install deps (windows)
         run: |
@@ -70,6 +70,7 @@ jobs:
         run: |
           jackd -v -r -d dummy &
           xvfb-run npm run dev:core-and-jest-with-jack
+          echo OK
         working-directory: ./ui
         if: matrix.os == 'ubuntu-20.04'
       - name: make (ui)
