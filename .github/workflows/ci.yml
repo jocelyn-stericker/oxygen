@@ -41,6 +41,8 @@ jobs:
         working-directory: ./ui
       - name: Install deps (ubuntu)
         run: |
+          sudo modinfo snd-aloop
+          echo ====
           sudo apt-get install -y libasound2-dev xvfb libportaudio2 dbus-x11 alsa-utils jackd
           jackd -d dummy --no-realtime &
           echo ====
