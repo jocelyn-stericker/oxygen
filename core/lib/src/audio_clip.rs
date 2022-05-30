@@ -20,6 +20,7 @@ pub struct RecordState {
 
 pub struct RecordHandle {
     stream: Stream,
+    /// Option is only taken in "stop".
     clip: Arc<Mutex<Option<RecordState>>>,
 }
 
@@ -118,6 +119,37 @@ impl StreamHandle for PlayHandle {
         let state = state.as_mut().unwrap();
 
         (state.time as f64) / (state.sample_rate as f64)
+    }
+}
+
+pub trait ClipHandle {
+    fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn>;
+    fn num_samples(&self) -> usize;
+}
+
+impl ClipHandle for RecordHandle {
+    fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn> {
+        let mut state = self.clip.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        state.clip.render_waveform(range, pixels)
+    }
+
+    fn num_samples(&self) -> usize {
+        let mut state = self.clip.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        state.clip.samples.len()
+    }
+}
+
+impl ClipHandle for AudioClip {
+    fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn> {
+        self.render_waveform(range, pixels)
+    }
+
+    fn num_samples(&self) -> usize {
+        self.samples.len()
     }
 }
 

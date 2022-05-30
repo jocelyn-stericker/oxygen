@@ -125,6 +125,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
       {uiState.recordTabSelected && (
         <RecordTab
           streaming={uiState.streaming}
+          drawCurrentClipWaveform={drawCurrentClipWaveform}
           onRecord={handleRecord}
           onStop={handleStop}
         />
