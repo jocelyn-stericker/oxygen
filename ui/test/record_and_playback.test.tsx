@@ -1,10 +1,12 @@
 import React from "react";
 import { act, fireEvent, render, within } from "@testing-library/react";
 import diff from "snapshot-diff";
+import postcss from "postcss";
+import tailwind from "tailwindcss";
 
 import UiMain from "../src/ui_main";
 
-beforeAll(() => {
+beforeAll(async () => {
   jest
     .spyOn(Date.prototype, "toLocaleDateString")
     .mockReturnValue("Mocked Date");
@@ -12,13 +14,25 @@ beforeAll(() => {
     .spyOn(Date.prototype, "toLocaleTimeString")
     .mockReturnValue("Mocked Date");
 
-  document.body.style.width = "1024px";
-  document.body.style.height = "768px";
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = (
+    await postcss([tailwind("tailwind.config.js")]).process(
+      " @tailwind base; @tailwind components; @tailwind utilities;",
+      {
+        from: "../src/index.css",
+      }
+    )
+  ).css;
+  document.head.appendChild(styleSheet);
 });
 
 describe("app [integration]", () => {
   it("can record and playback a clip", async () => {
-    const app = render(<UiMain inMemory={true} />);
+    const app = render(
+      <div style={{ width: 1024, height: 768 }}>
+        <UiMain inMemory={true} />
+      </div>
+    );
     const startRecording = app.getByRole("button", {
       name: "Start Recording",
     });

@@ -1,15 +1,17 @@
 use chrono::prelude::*;
-use log::{Level, Log, Metadata, Record};
 use napi::{
     bindgen_prelude::Buffer,
-    threadsafe_function::{
-        ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
-    },
-    Env, Error, JsDate, JsFunction, JsString, JsUnknown, Result,
+    threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
+    Env, Error, JsDate, JsFunction, JsUnknown, Result,
 };
 use napi_derive::napi;
-use oxygen_core::audio_clip::{AudioBackend, AudioClip, PlayHandle, RecordHandle, StreamHandle};
+use oxygen_core::audio_clip::{
+    AudioBackend, AudioClip, ClipHandle, PlayHandle, RecordHandle, StreamHandle,
+};
 use oxygen_core::db::{ClipMeta, Db};
+
+mod js_logger;
+use js_logger::JsLogger;
 
 enum Tab {
     Record {
@@ -67,52 +69,11 @@ impl From<&AudioClip> for JsClipMeta {
     }
 }
 
-struct JsLogger(ThreadsafeFunction<(String, String), ErrorStrategy::Fatal>);
-
-impl Log for JsLogger {
-    fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= log::max_level()
-    }
-
-    fn log(&self, record: &Record) {
-        if !self.enabled(record.metadata()) {
-            return;
-        }
-
-        let level = match record.level() {
-            Level::Error => "error",
-            Level::Trace => "trace",
-            Level::Warn => "warn",
-            Level::Info => "info",
-            Level::Debug => "debug",
-        }
-        .to_owned();
-
-        self.0.call(
-            (level, std::format!("{}", record.args())),
-            ThreadsafeFunctionCallMode::NonBlocking,
-        );
-    }
-
-    fn flush(&self) {}
-}
-
 #[napi]
 impl UiState {
     #[napi(constructor)]
     pub fn new(update_cb: JsFunction, log_cb: JsFunction, in_memory: bool) -> Result<UiState> {
-        let logger = Box::new(JsLogger(log_cb.create_threadsafe_function(
-            0,
-            |ctx: ThreadSafeCallContext<(String, String)>| {
-                Ok(vec![
-                    ctx.env.create_string_from_std(ctx.value.0)?,
-                    ctx.env.create_string_from_std(ctx.value.1)?,
-                ]) as Result<Vec<JsString>>
-            },
-        )?));
-        let logger = Box::leak(logger);
-        log::set_logger(logger).map_err(|e| Error::from_reason(format!("{:?}", e)))?;
-        log::set_max_level(log::LevelFilter::Trace);
+        JsLogger::set_logger(log_cb)?;
 
         Ok(UiState {
             tab: Tab::Record { handle: None },
@@ -342,7 +303,10 @@ impl UiState {
         let height = height as usize;
 
         let clip = match &self.tab {
-            Tab::Record { .. } => {
+            Tab::Record {
+                handle: Some(handle),
+            } => handle as &dyn ClipHandle,
+            Tab::Record { handle: None } => {
                 return Ok(None);
             }
             Tab::Clip { audio_clip, .. } => audio_clip,

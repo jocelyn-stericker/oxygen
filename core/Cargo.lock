@@ -1150,6 +1150,7 @@ name = "oxygen-napi"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "lazy_static",
  "log",
  "napi",
  "napi-build",
