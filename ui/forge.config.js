@@ -1,7 +1,7 @@
 /* eslint-env node */
 // @ts-check
 
-/** @type {import('@electron-forge/maker-squirrel').default['config']} */
+/** @type {import('@electron-forge/maker-zip').default['config']} */
 module.exports = {
   packagerConfig: {
     derefSymlinks: true,

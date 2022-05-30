@@ -1,10 +1,12 @@
 import React from "react";
 import { act, fireEvent, render, within } from "@testing-library/react";
 import diff from "snapshot-diff";
+import postcss from "postcss";
+import tailwind from "tailwindcss";
 
 import UiMain from "../src/ui_main";
 
-beforeAll(() => {
+beforeAll(async () => {
   jest
     .spyOn(Date.prototype, "toLocaleDateString")
     .mockReturnValue("Mocked Date");
@@ -14,6 +16,17 @@ beforeAll(() => {
 
   document.body.style.width = "1024px";
   document.body.style.height = "768px";
+
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = (
+    await postcss([tailwind("tailwind.config.js")]).process(
+      " @tailwind base; @tailwind components; @tailwind utilities;",
+      {
+        from: "../src/index.css",
+      }
+    )
+  ).css;
+  document.head.appendChild(styleSheet);
 });
 
 describe("app [integration]", () => {

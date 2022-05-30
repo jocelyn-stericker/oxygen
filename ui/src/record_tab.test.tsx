@@ -7,9 +7,17 @@ describe("RecordTab", () => {
   it("renders playing state and can be completed", () => {
     const handleRecord = jest.fn();
     const handleStop = jest.fn();
+    const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
+      return Buffer.from(Array(width * height * 4).fill(0));
+    });
 
     const recordTab = render(
-      <RecordTab streaming={true} onRecord={handleRecord} onStop={handleStop} />
+      <RecordTab
+        drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        streaming={true}
+        onRecord={handleRecord}
+        onStop={handleStop}
+      />
     );
 
     const toggle = recordTab.getByTestId("toggle-record");
@@ -23,9 +31,13 @@ describe("RecordTab", () => {
   it("renders stopped state and can be started", () => {
     const handleRecord = jest.fn();
     const handleStop = jest.fn();
+    const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
+      return Buffer.from(Array(width * height * 4).fill(0));
+    });
 
     const recordTab = render(
       <RecordTab
+        drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
         streaming={false}
         onRecord={handleRecord}
         onStop={handleStop}

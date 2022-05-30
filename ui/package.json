@@ -27,10 +27,11 @@
     "prod:core-and-jest-with-jack": "cross-env OXYGEN_NAPI_USE_JACK=1 run-s prod:build-core-with-jack jest",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "eslint:fix": "eslint --fix . --ext .js,.jsx,.ts,.tsx",
-    "jest": "jest .",
-    "test": "run-p prettier eslint prod:core-and-jest",
+    "eslint": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "eslint:fix": "eslint --fix . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "jest": "jest",
+    "tsc": "tsc --noEmit",
+    "test": "run-p prettier eslint tsc prod:core-and-jest",
     "test-with-jack": "run-p prettier eslint prod:core-and-jest-with-jack"
   },
   "devDependencies": {

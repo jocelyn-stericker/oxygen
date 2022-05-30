@@ -46,37 +46,57 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
       </div>
     </ul>
     <div
-      class="flex flex-row flex-grow"
+      class="flex flex-col flex-grow"
     >
       <div
-        class="flex-grow"
-      />
-      <button
-        class="p-4 rounded-md m-auto text-lg flex border-2 bg-purple-900 text-white hover:bg-purple-800"
-        data-testid="toggle-record"
+        class="flex-grow relative overflow-hidden"
       >
-        <svg
-          class="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-          />
-        </svg>
-        <span
-          class="w-2"
+        <canvas
+          class="absolute w-full h-full"
+          data-testid="current-clip-view"
+          height="492"
+          style="width: 512px; height: 492px; transform: scale(1); transform-origin: left top;"
+          width="512"
         />
-        Start Recording
-      </button>
+        <div
+          class="absolute w-[1px] bg-blue-400 h-full"
+          data-testid="current-clip-cursor"
+          style="left: 100%;"
+        />
+      </div>
       <div
-        class="flex-grow"
-      />
+        class="flex flex-row mb-4"
+      >
+        <div
+          class="flex-grow"
+        />
+        <button
+          class="p-4 rounded-md m-auto text-lg flex border-2 bg-purple-900 text-white hover:bg-purple-800"
+          data-testid="toggle-record"
+        >
+          <svg
+            class="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+            />
+          </svg>
+          <span
+            class="w-2"
+          />
+          Start Recording
+        </button>
+        <div
+          class="flex-grow"
+        />
+      </div>
     </div>
   </div>
 </DocumentFragment>
@@ -87,47 +107,47 @@ exports[`app [integration] can record and playback a clip: 1 recording 1`] = `
 - First value
 + Second value
 
-@@ -47,31 +47,37 @@
-      >
-        <div
-          class=\\"flex-grow\\"
-        />
-        <button
--         class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-purple-900 text-white hover:bg-purple-800\\"
-+         class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-white border-purple-900 text-purple-900 hover:bg-purple-100\\"
-          data-testid=\\"toggle-record\\"
+@@ -66,31 +66,37 @@
         >
-          <svg
-            class=\\"h-6 w-6\\"
-            fill=\\"none\\"
-            stroke=\\"currentColor\\"
-            viewBox=\\"0 0 24 24\\"
-            xmlns=\\"http://www.w3.org/2000/svg\\"
-          >
-            <path
--             d=\\"M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z\\"
-+             d=\\"M21 12a9 9 0 11-18 0 9 9 0 0118 0z\\"
-+             stroke-linecap=\\"round\\"
-+             stroke-linejoin=\\"round\\"
-+             stroke-width=\\"2\\"
-+           />
-+           <path
-+             d=\\"M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z\\"
-              stroke-linecap=\\"round\\"
-              stroke-linejoin=\\"round\\"
-              stroke-width=\\"2\\"
-            />
-          </svg>
-          <span
-            class=\\"w-2\\"
+          <div
+            class=\\"flex-grow\\"
           />
--         Start Recording
-+         Complete Recording
-        </button>
-        <div
-          class=\\"flex-grow\\"
-        />
-      </div>"
+          <button
+-           class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-purple-900 text-white hover:bg-purple-800\\"
++           class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-white border-purple-900 text-purple-900 hover:bg-purple-100\\"
+            data-testid=\\"toggle-record\\"
+          >
+            <svg
+              class=\\"h-6 w-6\\"
+              fill=\\"none\\"
+              stroke=\\"currentColor\\"
+              viewBox=\\"0 0 24 24\\"
+              xmlns=\\"http://www.w3.org/2000/svg\\"
+            >
+              <path
+-               d=\\"M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z\\"
++               d=\\"M21 12a9 9 0 11-18 0 9 9 0 0118 0z\\"
++               stroke-linecap=\\"round\\"
++               stroke-linejoin=\\"round\\"
++               stroke-width=\\"2\\"
++             />
++             <path
++               d=\\"M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z\\"
+                stroke-linecap=\\"round\\"
+                stroke-linejoin=\\"round\\"
+                stroke-width=\\"2\\"
+              />
+            </svg>
+            <span
+              class=\\"w-2\\"
+            />
+-           Start Recording
++           Complete Recording
+          </button>
+          <div
+            class=\\"flex-grow\\"
+          />
+        </div>"
 `;
 
 exports[`app [integration] can record and playback a clip: 2 done recording 1`] = `
@@ -150,7 +170,7 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
         >
           <h2
             class=\\"p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center\\"
-@@ -33,53 +33,127 @@
+@@ -33,73 +33,127 @@
               />
             </svg>
              Record New Clip
@@ -172,19 +192,18 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
 -         class=\\"text-center text-gray-500 italic p-2\\"
 -         data-testid=\\"cliplist-placeholder\\"
 +           class=\\"flex flex-row\\"
-+         >
+          >
+-         Your clips will appear here.
 +           <div
 +             class=\\"text-xs font-light\\"
-            >
--         Your clips will appear here.
++           >
 +             Mocked Date at Mocked Date
 +           </div>
           </div>
 +       </li>
       </ul>
       <div
--       class=\\"flex flex-row flex-grow\\"
-+       class=\\"flex flex-col flex-grow\\"
+        class=\\"flex flex-col flex-grow\\"
 +     >
 +       <div
 +         class=\\"flex flex-row\\"
@@ -216,25 +235,28 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
 +         </button>
 +       </div>
         <div
-+         class=\\"flex-grow relative overflow-hidden\\"
-+       >
-+         <canvas
-+           class=\\"absolute w-full h-full\\"
-+           data-testid=\\"current-clip-view\\"
-+           height=\\"154\\"
-+           style=\\"width: 1024px; height: 154px; transform: scale(1); transform-origin: left top;\\"
-+           width=\\"1024\\"
-+         />
-+         <div
-+           class=\\"absolute w-[1px] bg-blue-400 h-full\\"
-+           data-testid=\\"current-clip-cursor\\"
+          class=\\"flex-grow relative overflow-hidden\\"
+        >
+          <canvas
+            class=\\"absolute w-full h-full\\"
+            data-testid=\\"current-clip-view\\"
+-           height=\\"492\\"
+-           style=\\"width: 512px; height: 492px; transform: scale(1); transform-origin: left top;\\"
++           height=\\"432\\"
++           style=\\"width: 512px; height: 432px; transform: scale(1); transform-origin: left top;\\"
+            width=\\"512\\"
+          />
+          <div
+            class=\\"absolute w-[1px] bg-blue-400 h-full\\"
+            data-testid=\\"current-clip-cursor\\"
+-           style=\\"left: 100%;\\"
 +           style=\\"left: 0%;\\"
-+         />
-+       </div>
-+       <div
-+         class=\\"flex flex-row mb-4\\"
-+       >
-+         <div
+          />
+        </div>
+        <div
+          class=\\"flex flex-row mb-4\\"
+        >
+          <div
 +           class=\\"flex self-center font-mono text-purple-900 mx-2 w-20\\"
 +           data-testid=\\"current-clip-time\\"
 +         >
@@ -244,8 +266,8 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
             class=\\"flex-grow\\"
           />
           <button
--         class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-white border-purple-900 text-purple-900 hover:bg-purple-100\\"
--         data-testid=\\"toggle-record\\"
+-           class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-white border-purple-900 text-purple-900 hover:bg-purple-100\\"
+-           data-testid=\\"toggle-record\\"
 +           class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-purple-900 text-white hover:bg-purple-800\\"
 +           data-testid=\\"current-clip-toggle-playback\\"
           >
@@ -257,14 +279,14 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
               xmlns=\\"http://www.w3.org/2000/svg\\"
             >
               <path
--             d=\\"M21 12a9 9 0 11-18 0 9 9 0 0118 0z\\"
+-               d=\\"M21 12a9 9 0 11-18 0 9 9 0 0118 0z\\"
 +               d=\\"M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z\\"
                 stroke-linecap=\\"round\\"
                 stroke-linejoin=\\"round\\"
                 stroke-width=\\"2\\"
               />
               <path
--             d=\\"M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z\\"
+-               d=\\"M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z\\"
 +               d=\\"M21 12a9 9 0 11-18 0 9 9 0 0118 0z\\"
                 stroke-linecap=\\"round\\"
                 stroke-linejoin=\\"round\\"
@@ -274,16 +296,16 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
             <span
               class=\\"w-2\\"
             />
--         Complete Recording
+-           Complete Recording
 +           Play
           </button>
           <div
             class=\\"flex-grow\\"
-          />
++         />
 +         <div
 +           class=\\"w-20 mx-2\\"
-+         />
-+       </div>
+          />
+        </div>
       </div>
     </div>
   </DocumentFragment>"
@@ -327,7 +349,7 @@ exports[`app [integration] can record and playback a clip: 3 delta from initial 
 +       </li>
       </ul>
       <div
-        class=\\"flex flex-row flex-grow\\"
+        class=\\"flex flex-col flex-grow\\"
       >
         <div"
 `;
