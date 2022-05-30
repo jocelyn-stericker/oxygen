@@ -125,4 +125,49 @@ describe("ClipList", () => {
     fireEvent.click(record);
     expect(handleSetCurrentTabRecord).toHaveBeenCalledTimes(1);
   });
+
+  it("can filter by name", () => {
+    const handleSetCurrentTabRecord = jest.fn();
+    const handleSetCurrentClipId = jest.fn();
+
+    const clipList = render(
+      <ClipList
+        clips={[
+          { id: 1n, name: "Practice 1", date: new Date("2022-05-14Z") },
+          { id: 2n, name: "Practice 2", date: new Date("2022-05-15Z") },
+          {
+            id: 3n,
+            name: "Phone call 1",
+            date: new Date("2022-05-20T19:34:29.074Z"),
+          },
+        ]}
+        recordTabSelected={false}
+        currentClipId={3n}
+        onSetCurrentTabRecord={handleSetCurrentTabRecord}
+        onSetCurrentClipId={handleSetCurrentClipId}
+      />
+    );
+
+    expect(clipList.getAllByTestId("record-item")).toHaveLength(1);
+    expect(
+      clipList.getAllByTestId(/clip-\d+/).map((c) => c.textContent)
+    ).toEqual([
+      "Practice 1Saturday, May 14, 2022 at 12:00:00 AM",
+      "Practice 2Sunday, May 15, 2022 at 12:00:00 AM",
+      "Phone call 1Friday, May 20, 2022 at 7:34:29 PM",
+    ]);
+
+    const searchClips = clipList.getByRole("textbox", { name: "Search clips" });
+    fireEvent.change(searchClips, { target: { value: "Practice" } });
+
+    expect(
+      clipList.getAllByTestId(/clip-\d+/).map((c) => c.textContent)
+    ).toEqual([
+      "Practice 1Saturday, May 14, 2022 at 12:00:00 AM",
+      "Practice 2Sunday, May 15, 2022 at 12:00:00 AM",
+    ]);
+    expect(clipList.queryAllByTestId("record-item")).toHaveLength(0);
+
+    expect(handleSetCurrentClipId).not.toHaveBeenCalled();
+  });
 });

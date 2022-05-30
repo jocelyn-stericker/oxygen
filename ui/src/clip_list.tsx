@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { JsClipMeta } from "oxygen-core";
 import cx from "classnames";
 
@@ -31,71 +31,91 @@ export default function ClipList({
     );
   }
 
+  const [filter, setFilter] = useState("");
+
   return (
-    <ul
-      className="w-72 border-r-purple-900 border-r-2 h-full divide-y divide-purple-200 overflow-y-auto"
-      role="tablist"
-    >
-      <li
-        data-testid="record-item"
-        role="tab"
-        aria-selected={recordTabSelected}
-        className={cx(
-          "hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden",
-          recordTabSelected &&
-            "bg-purple-900 text-white hover:bg-purple-900 cursor-default"
-        )}
-        onClick={(ev) => {
-          ev.preventDefault();
-          onSetCurrentTabRecord();
-        }}
-      >
-        <h2
-          className={cx(
-            "p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center"
-          )}
-        >
-          <Record /> Record New Clip
-        </h2>
-      </li>
-      {clips.map((clip) => (
-        <li
-          data-testid={`clip-${clip.id}`}
-          role="tab"
-          aria-selected={currentClipId === clip.id}
-          key={clip.id.toString()}
-          className={cx(
-            "p-2 hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden",
-            currentClipId === clip.id &&
-              "bg-purple-900 text-white hover:bg-purple-900 cursor-default"
-          )}
-          onClick={(ev) => {
-            ev.preventDefault();
-            onSetCurrentClipId(Number(clip.id));
+    <div className="w-72 border-r-purple-900 border-r-2 h-full divide-y divide-purple-200 overflow-y-auto relative">
+      <div className="m-2">
+        <input
+          data-testid="filter-clip"
+          className="self-center p-2 text-m font-bold overflow-ellipses overflow-hidden border-2 border-purple-200 rounded-md focus:border-purple-900 outline-purple-900 text-purple-900 flex-grow transition-all w-full"
+          value={filter}
+          onChange={(ev) => {
+            setFilter(ev.currentTarget.value);
           }}
-        >
-          <h2
-            className="text-m font-bold overflow-ellipsis overflow-hidden"
-            title={clip.name}
+          placeholder="Search clips"
+          title="Search clips"
+          autoFocus
+        />
+      </div>
+      <ul role="tablist">
+        {filter.trim() == "" && (
+          <li
+            data-testid="record-item"
+            role="tab"
+            aria-selected={recordTabSelected}
+            className={cx(
+              "hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden",
+              recordTabSelected &&
+                "bg-purple-900 text-white hover:bg-purple-900 cursor-default"
+            )}
+            onClick={(ev) => {
+              ev.preventDefault();
+              onSetCurrentTabRecord();
+            }}
           >
-            {clip.name}
-          </h2>
-          <div className="flex flex-row">
-            <div className="text-xs font-light">
-              {clip.date.toLocaleDateString(undefined, { dateStyle: "full" })}{" "}
-              at {clip.date.toLocaleTimeString()}
-            </div>
+            <h2
+              className={cx(
+                "p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center"
+              )}
+            >
+              <Record /> Record New Clip
+            </h2>
+          </li>
+        )}
+        {clips
+          .filter((clip) => filter === "" || clip.name.includes(filter))
+          .map((clip) => (
+            <li
+              data-testid={`clip-${clip.id}`}
+              role="tab"
+              aria-selected={currentClipId === clip.id}
+              key={clip.id.toString()}
+              className={cx(
+                "p-2 hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden",
+                currentClipId === clip.id &&
+                  "bg-purple-900 text-white hover:bg-purple-900 cursor-default"
+              )}
+              onClick={(ev) => {
+                ev.preventDefault();
+                onSetCurrentClipId(Number(clip.id));
+              }}
+            >
+              <h2
+                className="text-m font-bold overflow-ellipsis overflow-hidden"
+                title={clip.name}
+              >
+                {clip.name}
+              </h2>
+              <div className="flex flex-row">
+                <div className="text-xs font-light">
+                  {clip.date.toLocaleDateString(undefined, {
+                    dateStyle: "full",
+                  })}{" "}
+                  at {clip.date.toLocaleTimeString()}
+                </div>
+              </div>
+            </li>
+          ))}
+        {clips.length === 0 && (
+          <div
+            data-testid="cliplist-placeholder"
+            className="text-center text-gray-500 italic p-2"
+          >
+            Your clips will appear here.
           </div>
-        </li>
-      ))}
-      {clips.length === 0 && (
-        <div
-          data-testid="cliplist-placeholder"
-          className="text-center text-gray-500 italic p-2"
-        >
-          Your clips will appear here.
-        </div>
-      )}
-    </ul>
+        )}
+      </ul>
+    </div>
   );
 }
