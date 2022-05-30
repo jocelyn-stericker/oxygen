@@ -1,5 +1,6 @@
 import { UiState } from "oxygen-core";
 import React, { useState, useCallback, useRef, useReducer } from "react";
+import cx from "classnames";
 
 import Toaster, { ToasterInterface } from "./toaster";
 import ClipList from "./clip_list";
@@ -99,9 +100,49 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
     [uiState]
   );
 
+  const [dragOver, setDragOver] = useState<boolean | "invalid">(false);
+
   return (
-    <div className="w-full h-full flex flex-row">
-      <Toaster ref={toaster} />
+    <div
+      className="w-full h-full flex flex-row"
+      onDragOver={(ev) => {
+        ev.preventDefault();
+        if (
+          [...ev.dataTransfer.items].filter(
+            (item) => item.type === "audio/wav" || item.type === "audio/mpeg"
+          ).length > 0
+        ) {
+          setDragOver(true);
+        } else {
+          setDragOver("invalid");
+        }
+      }}
+      onDragLeave={(ev) => {
+        ev.preventDefault();
+        setDragOver(false);
+      }}
+      onDrop={(ev) => {
+        for (const item of ev.dataTransfer.items) {
+          if (item.type === "audio/wav" || item.type === "audio/mpeg") {
+            try {
+              uiState.import(item.getAsFile().path);
+              toaster.current.info(`Imported ${item.getAsFile().name}.`);
+            } catch (err) {
+              toaster.current.error(
+                `Could not import ${item.getAsFile().name}: ${err.toString()}`
+              );
+            }
+          } else {
+            toaster.current.error(
+              `Count not import ${
+                item.getAsFile().name
+              } because the file type is unsupported.`
+            );
+          }
+        }
+        setDragOver(false);
+      }}
+    >
       <ClipList
         clips={uiState.getClips().reverse()}
         recordTabSelected={uiState.recordTabSelected}
@@ -130,6 +171,23 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
           onStop={handleStop}
         />
       )}
+      {dragOver && (
+        <div className="absolute h-full w-full p-2">
+          <div
+            className={cx(
+              "relative h-full w-full border-4 text-2xl flex items-center font-bold justify-center",
+              dragOver === "invalid" && "border-red-600/75  bg-red-200/75",
+              dragOver === true && "border-blue-600/75  bg-blue-200/75"
+            )}
+          >
+            {dragOver === true && <div>Drop audio clips here.</div>}
+            {dragOver === "invalid" && (
+              <div>This file type is not supported.</div>
+            )}
+          </div>
+        </div>
+      )}
+      <Toaster ref={toaster} />
     </div>
   );
 }

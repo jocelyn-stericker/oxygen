@@ -9,7 +9,7 @@
     "postinstall": "cd ../core/napi && npm ci",
     "start": "run-p --race dev:parcel dev:sync-electron",
     "dev:parcel": "parcel ./src/index.html",
-    "dev:sync-electron": "run-s dev:build-core dev:wait-for-parcel dev:electron",
+    "dev:sync-electron": "run-s prod:build-core dev:wait-for-parcel dev:electron",
     "dev:build-core": "cd ../core/napi && npm run build:debug",
     "dev:build-core-with-jack": "cd ../core/napi && npm run build:debug-with-jack",
     "dev:wait-for-parcel": "wait-on http://localhost:1234",

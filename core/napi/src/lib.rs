@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use chrono::prelude::*;
 use napi::{
     bindgen_prelude::Buffer,
@@ -375,5 +377,41 @@ impl UiState {
         } else {
             0.0
         }
+    }
+
+    #[napi]
+    pub fn import(&mut self, path: String) -> Result<()> {
+        let name = Path::new(&path)
+            .file_stem()
+            .ok_or_else(|| Error::from_reason(format!("Invalid path: {}", path)))?
+            .to_str()
+            .ok_or_else(|| Error::from_reason("Path is not utf8"))?
+            .to_string();
+
+        if self
+            .db
+            .load(&name)
+            .map_err(|err| Error::from_reason(format!("{:?}", err)))?
+            .is_some()
+        {
+            return Err(Error::from_reason(format!(
+                "There is already a clip named {}",
+                name
+            )));
+        }
+        let mut audio_clip = AudioClip::import(name, path)
+            .map_err(|err| Error::from_reason(format!("{:?}", err)))?;
+        self.db
+            .save(&mut audio_clip)
+            .map_err(|err| Error::from_reason(format!("{:?}", err)))?;
+
+        self.tab = Tab::Clip {
+            audio_clip,
+            handle: None,
+        };
+        self.update_cb
+            .call((), ThreadsafeFunctionCallMode::NonBlocking);
+
+        Ok(())
     }
 }

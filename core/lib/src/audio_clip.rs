@@ -389,7 +389,7 @@ impl AudioClip {
 
                         // The samples may now be access via the `samples()` function.
                         sample_count += buf.samples().len();
-                        print!("\rDecoded {} samples", sample_count);
+                        log::info!("\rDecoded {} samples", sample_count);
                     }
                 }
                 Err(Error::DecodeError(_)) => (),
