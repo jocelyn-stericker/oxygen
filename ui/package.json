@@ -31,8 +31,8 @@
     "eslint:fix": "eslint --fix . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
     "jest": "jest",
     "tsc": "tsc --noEmit",
-    "test": "run-p prettier eslint tsc prod:core-and-jest",
-    "test-with-jack": "run-p prettier eslint prod:core-and-jest-with-jack"
+    "test": "npm-run-all -p prettier eslint prod:build-core -p jest tsc",
+    "test-with-jack": "npm-run-all -p prettier eslint prod:build-core-with-jack -p jest tsc"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.63",
