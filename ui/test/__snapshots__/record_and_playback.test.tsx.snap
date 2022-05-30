@@ -11,43 +11,57 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
       <div
         class="fixed left-1/2 bottom-0 flex flex-col-reverse"
       />
-      <ul
-        class="w-72 border-r-purple-900 border-r-2 h-full divide-y divide-purple-200 overflow-y-auto"
-        role="tablist"
+      <div
+        class="w-72 border-r-purple-900 border-r-2 h-full divide-y divide-purple-200 overflow-y-auto relative"
       >
-        <li
-          aria-selected="true"
-          class="hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden bg-purple-900 text-white hover:bg-purple-900 cursor-default"
-          data-testid="record-item"
-          role="tab"
-        >
-          <h2
-            class="p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center"
-          >
-            <svg
-              class="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-              />
-            </svg>
-             Record New Clip
-          </h2>
-        </li>
         <div
-          class="text-center text-gray-500 italic p-2"
-          data-testid="cliplist-placeholder"
+          class="m-2"
         >
-          Your clips will appear here.
+          <input
+            class="self-center p-2 text-m font-bold overflow-ellipses overflow-hidden border-2 border-purple-200 rounded-md focus:border-purple-900 outline-purple-900 text-purple-900 flex-grow transition-all w-full"
+            data-testid="filter-clip"
+            placeholder="Search clips"
+            title="Search clips"
+            value=""
+          />
         </div>
-      </ul>
+        <ul
+          role="tablist"
+        >
+          <li
+            aria-selected="true"
+            class="hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden bg-purple-900 text-white hover:bg-purple-900 cursor-default"
+            data-testid="record-item"
+            role="tab"
+          >
+            <h2
+              class="p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center"
+            >
+              <svg
+                class="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                />
+              </svg>
+               Record New Clip
+            </h2>
+          </li>
+          <div
+            class="text-center text-gray-500 italic p-2"
+            data-testid="cliplist-placeholder"
+          >
+            Your clips will appear here.
+          </div>
+        </ul>
+      </div>
       <div
         class="flex flex-col flex-grow"
       >
@@ -111,7 +125,7 @@ exports[`app [integration] can record and playback a clip: 1 recording 1`] = `
 - First value
 + Second value
 
-@@ -69,31 +69,37 @@
+@@ -83,31 +83,37 @@
           >
             <div
               class=\\"flex-grow\\"
@@ -159,53 +173,54 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
 - First value
 + Second value
 
-@@ -11,12 +11,12 @@
-        <ul
-          class=\\"w-72 border-r-purple-900 border-r-2 h-full divide-y divide-purple-200 overflow-y-auto\\"
-          role=\\"tablist\\"
-        >
-          <li
--           aria-selected=\\"true\\"
--           class=\\"hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden bg-purple-900 text-white hover:bg-purple-900 cursor-default\\"
-+           aria-selected=\\"false\\"
-+           class=\\"hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden\\"
-            data-testid=\\"record-item\\"
-            role=\\"tab\\"
+@@ -24,12 +24,12 @@
+          </div>
+          <ul
+            role=\\"tablist\\"
           >
-            <h2
-              class=\\"p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center\\"
-@@ -36,73 +36,127 @@
-                />
-              </svg>
-               Record New Clip
-            </h2>
-          </li>
-+         <li
-+           aria-selected=\\"true\\"
-+           class=\\"p-2 hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden bg-purple-900 text-white hover:bg-purple-900 cursor-default\\"
-+           data-testid=\\"clip-1\\"
-+           role=\\"tab\\"
-+         >
-+           <h2
-+             class=\\"text-m font-bold overflow-ellipsis overflow-hidden\\"
-+             title=\\"New clip name\\"
-+           >
-+             New clip name
-+           </h2>
-            <div
--           class=\\"text-center text-gray-500 italic p-2\\"
--           data-testid=\\"cliplist-placeholder\\"
-+             class=\\"flex flex-row\\"
+            <li
+-             aria-selected=\\"true\\"
+-             class=\\"hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden bg-purple-900 text-white hover:bg-purple-900 cursor-default\\"
++             aria-selected=\\"false\\"
++             class=\\"hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden\\"
+              data-testid=\\"record-item\\"
+              role=\\"tab\\"
             >
--           Your clips will appear here.
-+             <div
-+               class=\\"text-xs font-light\\"
+              <h2
+                class=\\"p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center\\"
+@@ -49,74 +49,128 @@
+                  />
+                </svg>
+                 Record New Clip
+              </h2>
+            </li>
++           <li
++             aria-selected=\\"true\\"
++             class=\\"p-2 hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden bg-purple-900 text-white hover:bg-purple-900 cursor-default\\"
++             data-testid=\\"clip-1\\"
++             role=\\"tab\\"
++           >
++             <h2
++               class=\\"text-m font-bold overflow-ellipsis overflow-hidden\\"
++               title=\\"New clip name\\"
 +             >
-+               Mocked Date at Mocked Date
-+             </div>
-            </div>
-+         </li>
-        </ul>
++               New clip name
++             </h2>
+              <div
+-             class=\\"text-center text-gray-500 italic p-2\\"
+-             data-testid=\\"cliplist-placeholder\\"
++               class=\\"flex flex-row\\"
+              >
+-             Your clips will appear here.
++               <div
++                 class=\\"text-xs font-light\\"
++               >
++                 Mocked Date at Mocked Date
++               </div>
+              </div>
++           </li>
+          </ul>
+        </div>
         <div
           class=\\"flex flex-col flex-grow\\"
 +       >
@@ -320,40 +335,40 @@ exports[`app [integration] can record and playback a clip: 3 delta from initial 
 - First value
 + Second value
 
-@@ -36,16 +36,32 @@
-                />
-              </svg>
-               Record New Clip
-            </h2>
-          </li>
-+         <li
-+           aria-selected=\\"false\\"
-+           class=\\"p-2 hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden\\"
-+           data-testid=\\"clip-1\\"
-+           role=\\"tab\\"
-+         >
-+           <h2
-+             class=\\"text-m font-bold overflow-ellipsis overflow-hidden\\"
-+             title=\\"New clip name\\"
+@@ -49,16 +49,32 @@
+                  />
+                </svg>
+                 Record New Clip
+              </h2>
+            </li>
++           <li
++             aria-selected=\\"false\\"
++             class=\\"p-2 hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden\\"
++             data-testid=\\"clip-1\\"
++             role=\\"tab\\"
 +           >
-+             New clip name
-+           </h2>
-            <div
--           class=\\"text-center text-gray-500 italic p-2\\"
--           data-testid=\\"cliplist-placeholder\\"
-+             class=\\"flex flex-row\\"
-            >
--           Your clips will appear here.
-+             <div
-+               class=\\"text-xs font-light\\"
++             <h2
++               class=\\"text-m font-bold overflow-ellipsis overflow-hidden\\"
++               title=\\"New clip name\\"
 +             >
-+               Mocked Date at Mocked Date
-+             </div>
-            </div>
-+         </li>
-        </ul>
++               New clip name
++             </h2>
+              <div
+-             class=\\"text-center text-gray-500 italic p-2\\"
+-             data-testid=\\"cliplist-placeholder\\"
++               class=\\"flex flex-row\\"
+              >
+-             Your clips will appear here.
++               <div
++                 class=\\"text-xs font-light\\"
++               >
++                 Mocked Date at Mocked Date
++               </div>
+              </div>
++           </li>
+          </ul>
+        </div>
         <div
           class=\\"flex flex-col flex-grow\\"
-        >
-          <div"
+        >"
 `;
