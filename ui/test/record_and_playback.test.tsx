@@ -14,9 +14,6 @@ beforeAll(async () => {
     .spyOn(Date.prototype, "toLocaleTimeString")
     .mockReturnValue("Mocked Date");
 
-  document.body.style.width = "1024px";
-  document.body.style.height = "768px";
-
   const styleSheet = document.createElement("style");
   styleSheet.innerText = (
     await postcss([tailwind("tailwind.config.js")]).process(
@@ -31,7 +28,11 @@ beforeAll(async () => {
 
 describe("app [integration]", () => {
   it("can record and playback a clip", async () => {
-    const app = render(<UiMain inMemory={true} />);
+    const app = render(
+      <div style={{ width: 1024, height: 768 }}>
+        <UiMain inMemory={true} />
+      </div>
+    );
     const startRecording = app.getByRole("button", {
       name: "Start Recording",
     });

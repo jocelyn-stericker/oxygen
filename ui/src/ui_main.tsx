@@ -100,7 +100,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
   );
 
   return (
-    <div className="w-screen h-screen flex flex-row">
+    <div className="w-full h-full flex flex-row">
       <Toaster ref={toaster} />
       <ClipList
         clips={uiState.getClips().reverse()}
