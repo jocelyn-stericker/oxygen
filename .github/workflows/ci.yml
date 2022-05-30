@@ -68,7 +68,7 @@ jobs:
         if: matrix.os != 'ubuntu-20.04'
       - name: test (ui, ubuntu)
         run: |
-          jackd -v -r -d dummy &
+          jackd -r -d dummy &
           xvfb-run npm run dev:core-and-jest-with-jack
           echo OK
         working-directory: ./ui
