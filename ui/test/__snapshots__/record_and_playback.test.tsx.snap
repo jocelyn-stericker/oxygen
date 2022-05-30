@@ -54,8 +54,8 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
         <canvas
           class="absolute w-full h-full"
           data-testid="current-clip-view"
-          height="492"
-          style="width: 512px; height: 492px; transform: scale(1); transform-origin: left top;"
+          height="495"
+          style="width: 512px; height: 495px; transform: scale(1); transform-origin: left top;"
           width="512"
         />
         <div
@@ -71,7 +71,7 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
           class="flex-grow"
         />
         <button
-          class="p-4 rounded-md m-auto text-lg flex border-2 bg-purple-900 text-white hover:bg-purple-800"
+          class="px-4 rounded-md m-auto text-lg flex border-2 h-16 items-center bg-purple-900 text-white hover:bg-purple-800"
           data-testid="toggle-record"
         >
           <svg
@@ -113,8 +113,8 @@ exports[`app [integration] can record and playback a clip: 1 recording 1`] = `
             class=\\"flex-grow\\"
           />
           <button
--           class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-purple-900 text-white hover:bg-purple-800\\"
-+           class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-white border-purple-900 text-purple-900 hover:bg-purple-100\\"
+-           class=\\"px-4 rounded-md m-auto text-lg flex border-2 h-16 items-center bg-purple-900 text-white hover:bg-purple-800\\"
++           class=\\"px-4 rounded-md m-auto text-lg flex border-2 h-16 items-center bg-white border-purple-900 text-purple-900 hover:bg-purple-100\\"
             data-testid=\\"toggle-record\\"
           >
             <svg
@@ -240,10 +240,10 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
           <canvas
             class=\\"absolute w-full h-full\\"
             data-testid=\\"current-clip-view\\"
--           height=\\"492\\"
--           style=\\"width: 512px; height: 492px; transform: scale(1); transform-origin: left top;\\"
-+           height=\\"432\\"
-+           style=\\"width: 512px; height: 432px; transform: scale(1); transform-origin: left top;\\"
+-           height=\\"495\\"
+-           style=\\"width: 512px; height: 495px; transform: scale(1); transform-origin: left top;\\"
++           height=\\"435\\"
++           style=\\"width: 512px; height: 435px; transform: scale(1); transform-origin: left top;\\"
             width=\\"512\\"
           />
           <div
@@ -266,9 +266,9 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
             class=\\"flex-grow\\"
           />
           <button
--           class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-white border-purple-900 text-purple-900 hover:bg-purple-100\\"
+-           class=\\"px-4 rounded-md m-auto text-lg flex border-2 h-16 items-center bg-white border-purple-900 text-purple-900 hover:bg-purple-100\\"
 -           data-testid=\\"toggle-record\\"
-+           class=\\"p-4 rounded-md m-auto text-lg flex border-2 bg-purple-900 text-white hover:bg-purple-800\\"
++           class=\\"px-4 rounded-md m-auto text-lg flex border-2 h-16 items-center bg-purple-900 text-white hover:bg-purple-800\\"
 +           data-testid=\\"current-clip-toggle-playback\\"
           >
             <svg

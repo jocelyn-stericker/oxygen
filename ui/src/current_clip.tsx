@@ -76,7 +76,7 @@ export default function CurrentClip({
         <button
           data-testid="current-clip-toggle-playback"
           className={cx(
-            "p-4 rounded-md m-auto text-lg flex border-2",
+            "px-4 rounded-md m-auto text-lg flex border-2 h-16 items-center",
             streaming
               ? "bg-white border-purple-900 text-purple-900 hover:bg-purple-100"
               : "bg-purple-900 text-white hover:bg-purple-800"
