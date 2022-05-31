@@ -9,9 +9,6 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
       class="w-full h-full flex flex-row"
     >
       <div
-        class="fixed left-1/2 bottom-0 flex flex-col-reverse"
-      />
-      <div
         class="w-72 border-r-purple-900 border-r-2 h-full divide-y divide-purple-200 overflow-y-auto relative"
       >
         <div
@@ -115,6 +112,9 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
           />
         </div>
       </div>
+      <div
+        class="fixed left-1/2 bottom-0 flex flex-col-reverse"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -125,7 +125,7 @@ exports[`app [integration] can record and playback a clip: 1 recording 1`] = `
 - First value
 + Second value
 
-@@ -83,31 +83,37 @@
+@@ -80,31 +80,37 @@
           >
             <div
               class=\\"flex-grow\\"
@@ -173,7 +173,7 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
 - First value
 + Second value
 
-@@ -24,12 +24,12 @@
+@@ -21,12 +21,12 @@
           </div>
           <ul
             role=\\"tablist\\"
@@ -188,7 +188,7 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
             >
               <h2
                 class=\\"p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center\\"
-@@ -49,74 +49,128 @@
+@@ -46,74 +46,128 @@
                   />
                 </svg>
                  Record New Clip
@@ -326,8 +326,8 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
             />
           </div>
         </div>
-      </div>
-    </div>"
+        <div
+          class=\\"fixed left-1/2 bottom-0 flex flex-col-reverse\\""
 `;
 
 exports[`app [integration] can record and playback a clip: 3 delta from initial 1`] = `
@@ -335,7 +335,7 @@ exports[`app [integration] can record and playback a clip: 3 delta from initial 
 - First value
 + Second value
 
-@@ -49,16 +49,32 @@
+@@ -46,16 +46,32 @@
                   />
                 </svg>
                  Record New Clip
