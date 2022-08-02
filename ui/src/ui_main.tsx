@@ -46,6 +46,12 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
 
   const handleStop = useCallback(() => uiState.stop(), [uiState]);
 
+  const handleSeek = useCallback(
+    (timePercent: number) => {
+      uiState.seek(timePercent)
+    }, [uiState]
+  );
+
   const handleRename = useCallback(
     (name: string) => {
       try {
@@ -159,6 +165,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
           streaming={uiState.streaming}
           onPlay={handlePlay}
           onStop={handleStop}
+          onSeek={handleSeek}
           onRename={handleRename}
           onDelete={handleDelete}
         />

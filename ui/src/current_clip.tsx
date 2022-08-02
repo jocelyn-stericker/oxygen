@@ -12,6 +12,7 @@ export default function CurrentClip({
   streaming,
   onPlay,
   onStop,
+  onSeek,
   onRename,
   onDelete,
 }: {
@@ -22,6 +23,7 @@ export default function CurrentClip({
   streaming: boolean;
   onPlay: (cb: () => void) => void;
   onStop: () => void;
+  onSeek: (timePercent: number) => void;
   onRename: (name: string) => void;
   onDelete: () => void;
 }) {
@@ -64,6 +66,7 @@ export default function CurrentClip({
         drawCurrentClipWaveform={drawCurrentClipWaveform}
         timePercent={timePercent}
         clipId={clip.id}
+        onSeek={onSeek}
       />
       <div className="flex flex-row mb-4">
         <div
