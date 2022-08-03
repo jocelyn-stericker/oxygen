@@ -48,8 +48,9 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
 
   const handleSeek = useCallback(
     (timePercent: number) => {
-      uiState.seek(timePercent)
-    }, [uiState]
+      uiState.seek(timePercent);
+    },
+    [uiState]
   );
 
   const handleRename = useCallback(
