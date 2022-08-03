@@ -21,6 +21,9 @@ export default function RecordTab({
         drawCurrentClipWaveform={drawCurrentClipWaveform}
         timePercent={1}
         streaming={streaming}
+        onSeek={() => {
+          console.warn("TODO: implement seek in record tab?");
+        }}
       />
       <div className="flex flex-row mb-4">
         <div className="flex-grow" />

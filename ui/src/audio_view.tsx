@@ -84,7 +84,7 @@ export default function AudioView({
         className="absolute w-full h-full"
         ref={canvas}
         onClick={(ev) => {
-          let rect = ev.target.getBoundingClientRect();
+          const rect = ev.currentTarget.getBoundingClientRect();
           onSeek((ev.clientX - rect.left) / rect.width);
         }}
       />

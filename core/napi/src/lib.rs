@@ -199,10 +199,12 @@ impl UiState {
 
     #[napi]
     pub fn seek(&mut self, time_percent: f64) -> Result<()> {
-        if let Tab::Clip { handle, .. } = &mut self.tab {
-            if let Some(handle) = handle {
-                handle.seek(time_percent);
-            }
+        if let Tab::Clip {
+            handle: Some(handle),
+            ..
+        } = &mut self.tab
+        {
+            handle.seek(time_percent);
         }
 
         self.update_cb
