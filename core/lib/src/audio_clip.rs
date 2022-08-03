@@ -68,6 +68,13 @@ impl PlayHandle {
             state.done_cbs.push(Box::new(f));
         }
     }
+
+    pub fn seek(&self, time_percent: f64) {
+        let mut state = self.state.lock().unwrap();
+        let state = state.as_mut().unwrap();
+        state.time = (time_percent * (state.samples.len() as f64)) as usize;
+        state.changed_cbs_triggered_at = 0;
+    }
 }
 
 pub trait StreamHandle {

@@ -198,6 +198,22 @@ impl UiState {
     }
 
     #[napi]
+    pub fn seek(&mut self, time_percent: f64) -> Result<()> {
+        if let Tab::Clip {
+            handle: Some(handle),
+            ..
+        } = &mut self.tab
+        {
+            handle.seek(time_percent);
+        }
+
+        self.update_cb
+            .call((), ThreadsafeFunctionCallMode::NonBlocking);
+
+        Ok(())
+    }
+
+    #[napi]
     pub fn stop(&mut self) -> Result<()> {
         match &mut self.tab {
             Tab::Record { handle } => {

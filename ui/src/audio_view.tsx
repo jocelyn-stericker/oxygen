@@ -5,11 +5,13 @@ export default function AudioView({
   streaming,
   timePercent,
   clipId,
+  onSeek,
 }: {
   drawCurrentClipWaveform: (width: number, height: number) => Buffer | null;
   streaming?: boolean;
   timePercent: number;
   clipId?: bigint | number;
+  onSeek: (timePercent: number) => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const canvasContainer = useRef<HTMLDivElement>(null);
@@ -81,6 +83,10 @@ export default function AudioView({
         data-testid="current-clip-view"
         className="absolute w-full h-full"
         ref={canvas}
+        onClick={(ev) => {
+          const rect = ev.currentTarget.getBoundingClientRect();
+          onSeek((ev.clientX - rect.left) / rect.width);
+        }}
       />
       <div
         data-testid="current-clip-cursor"
