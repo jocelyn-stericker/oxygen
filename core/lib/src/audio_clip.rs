@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{Host, HostUnavailable, Stream};
+use cpal::{Host, HostUnavailable, Sample, Stream};
 use dasp::{interpolate::linear::Linear, signal, Signal};
 use std::fs::File;
 use std::path::Path;
@@ -175,17 +175,12 @@ pub struct DisplayColumn {
     pub max: f32,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub enum AudioBackend {
+    #[default]
     Default,
     #[cfg(feature = "jack")]
     Jack,
-}
-
-impl Default for AudioBackend {
-    fn default() -> Self {
-        AudioBackend::Default
-    }
 }
 
 impl AudioBackend {
@@ -251,11 +246,12 @@ impl AudioClip {
         fn write_input_data<T>(input: &[T], channels: u16, writer: &RecordStateHandle)
         where
             T: cpal::Sample,
+            f32: cpal::FromSample<T>,
         {
             if let Ok(mut guard) = writer.try_lock() {
                 if let Some(state) = guard.as_mut() {
                     for frame in input.chunks(channels.into()) {
-                        state.clip.samples.push(frame[0].to_f32());
+                        state.clip.samples.push(f32::from_sample(frame[0]));
                     }
                 }
             }
@@ -266,17 +262,23 @@ impl AudioClip {
                 &config.into(),
                 move |data, _: &_| write_input_data::<f32>(data, channels, &clip_2),
                 err_fn,
+                None,
             )?,
             cpal::SampleFormat::I16 => device.build_input_stream(
                 &config.into(),
                 move |data, _: &_| write_input_data::<i16>(data, channels, &clip_2),
                 err_fn,
+                None,
             )?,
             cpal::SampleFormat::U16 => device.build_input_stream(
                 &config.into(),
                 move |data, _: &_| write_input_data::<u16>(data, channels, &clip_2),
                 err_fn,
+                None,
             )?,
+            format => {
+                return Err(eyre!("Unknown sample format {:?}.", format));
+            }
         };
 
         stream.play()?;
@@ -436,14 +438,14 @@ impl AudioClip {
 
         fn write_output_data<T>(output: &mut [T], channels: u16, writer: &PlaybackStateHandle)
         where
-            T: cpal::Sample,
+            T: cpal::Sample + cpal::SizedSample + cpal::FromSample<f32>,
         {
             if let Ok(mut guard) = writer.try_lock() {
                 if let Some(state) = guard.as_mut() {
                     for frame in output.chunks_mut(channels.into()) {
                         for sample in frame.iter_mut() {
                             *sample =
-                                cpal::Sample::from(state.samples.get(state.time).unwrap_or(&0f32));
+                                T::from_sample(*state.samples.get(state.time).unwrap_or(&0f32));
                         }
                         state.time += 1;
                     }
@@ -467,17 +469,23 @@ impl AudioClip {
                 &config.into(),
                 move |data, _: &_| write_output_data::<f32>(data, channels, &state),
                 err_fn,
+                None,
             )?,
             cpal::SampleFormat::I16 => device.build_output_stream(
                 &config.into(),
                 move |data, _: &_| write_output_data::<i16>(data, channels, &state),
                 err_fn,
+                None,
             )?,
             cpal::SampleFormat::U16 => device.build_output_stream(
                 &config.into(),
                 move |data, _: &_| write_output_data::<u16>(data, channels, &state),
                 err_fn,
+                None,
             )?,
+            format => {
+                return Err(eyre!("Unknown sample format {:?}.", format));
+            }
         };
 
         stream.play()?;
@@ -513,7 +521,7 @@ impl AudioClip {
     pub fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn> {
         let min_t = range.0.min(self.samples.len()) as f32;
         let max_t = (range.1.min(self.samples.len()) as f32).max(min_t);
-        let samples_per_pixel = ((max_t as f32) - (min_t as f32)) / (pixels as f32);
+        let samples_per_pixel = (max_t - min_t) / (pixels as f32);
 
         (0..pixels)
             .map(|pixel_i| {
