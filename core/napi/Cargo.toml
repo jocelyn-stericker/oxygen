@@ -11,11 +11,11 @@ jack = ["oxygen-core/jack"]
 
 [dependencies]
 oxygen-core = { path = "../lib" }
-napi = {version = "2.4.3", features = ["napi8"]}
-napi-derive = "2.4.1"
-chrono = "0.4.19"
+napi = {version = "2.12.6", features = ["napi8"]}
+napi-derive = "2.12.5"
+chrono = "0.4.24"
 log = "0.4.17"
 lazy_static = "1.4.0"
 
 [build-dependencies]
-napi-build = "2.0.0"
+napi-build = "2.0.1"
