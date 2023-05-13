@@ -26,6 +26,6 @@
     "build:debug-with-jack": "napi build --platform --features jack"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^2.0.0"
+    "@napi-rs/cli": "^2.15.2"
   }
 }
