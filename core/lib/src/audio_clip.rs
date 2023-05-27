@@ -132,6 +132,7 @@ impl StreamHandle for PlayHandle {
 pub trait ClipHandle {
     fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn>;
     fn num_samples(&self) -> usize;
+    fn sample_rate(&self) -> usize;
 }
 
 impl ClipHandle for RecordHandle {
@@ -148,6 +149,13 @@ impl ClipHandle for RecordHandle {
 
         state.clip.samples.len()
     }
+
+    fn sample_rate(&self) -> usize {
+        let mut state = self.clip.lock().unwrap();
+        let state = state.as_mut().unwrap();
+
+        state.clip.sample_rate()
+    }
 }
 
 impl ClipHandle for AudioClip {
@@ -157,6 +165,10 @@ impl ClipHandle for AudioClip {
 
     fn num_samples(&self) -> usize {
         self.samples.len()
+    }
+
+    fn sample_rate(&self) -> usize {
+        self.sample_rate as usize
     }
 }
 

@@ -7,6 +7,7 @@ use napi::{
     Env, Error, JsDate, JsFunction, JsUnknown, Result,
 };
 use napi_derive::napi;
+use oxygen_core::analyzer::Analyzer;
 use oxygen_core::audio_clip::{
     AudioBackend, AudioClip, ClipHandle, PlayHandle, RecordHandle, StreamHandle,
 };
@@ -32,6 +33,14 @@ pub struct UiState {
     deleted_clip: Option<AudioClip>,
     update_cb: ThreadsafeFunction<(), ErrorStrategy::Fatal>,
     host: AudioBackend,
+    analyzer: Analyzer,
+}
+
+#[napi]
+pub struct Segment {
+    pub t0: f64,
+    pub t1: f64,
+    pub segment: String,
 }
 
 #[napi]
@@ -98,6 +107,8 @@ impl UiState {
 
             #[cfg(not(feature = "jack"))]
             host: AudioBackend::Default,
+
+            analyzer: Analyzer::new().map_err(|e| Error::from_reason(format!("{:?}", e)))?,
         })
     }
 
@@ -356,6 +367,32 @@ impl UiState {
         Ok(Some(buffer.into()))
     }
 
+    #[napi]
+    pub fn transcribe(&mut self) -> Result<Option<Vec<Segment>>> {
+        let clip: &AudioClip = match &self.tab {
+            Tab::Record {
+                handle: Some(_handle),
+            } => {
+                return Ok(None);
+            }
+            Tab::Record { handle: None } => {
+                return Ok(None);
+            }
+            Tab::Clip { audio_clip, .. } => audio_clip as &AudioClip,
+        };
+
+        self.analyzer
+            .transcribe(clip)
+            .map_err(|err| Error::from_reason(format!("{:?}", err)))
+            .map(|some| {
+                Some(
+                    some.into_iter()
+                        .map(|((t0, t1), segment)| Segment { t0, t1, segment })
+                        .collect::<Vec<Segment>>(),
+                )
+            })
+    }
+
     #[napi(getter)]
     pub fn get_streaming(&self) -> bool {
         match &self.tab {
@@ -393,6 +430,21 @@ impl UiState {
         } else {
             0.0
         }
+    }
+
+    #[napi(getter)]
+    pub fn get_duration(&self) -> f64 {
+        let clip = match &self.tab {
+            Tab::Record {
+                handle: Some(handle),
+            } => handle as &dyn ClipHandle,
+            Tab::Record { handle: None } => {
+                return 0.0;
+            }
+            Tab::Clip { audio_clip, .. } => audio_clip,
+        };
+
+        (clip.num_samples() as f64) / (clip.sample_rate() as f64)
     }
 
     #[napi]

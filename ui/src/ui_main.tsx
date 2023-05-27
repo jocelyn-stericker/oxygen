@@ -37,6 +37,8 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
     [uiState]
   );
 
+  const transcribe = useCallback(() => uiState.transcribe(), [uiState]);
+
   const handlePlay = useCallback(
     (cb: () => void) => {
       uiState.play(cb);
@@ -161,8 +163,10 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
         <CurrentClip
           clip={uiState.currentClip}
           drawCurrentClipWaveform={drawCurrentClipWaveform}
+          transcribe={transcribe}
           time={uiState.time}
           timePercent={uiState.timePercent}
+          duration={uiState.duration}
           streaming={uiState.streaming}
           onPlay={handlePlay}
           onStop={handleStop}

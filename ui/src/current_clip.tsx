@@ -1,4 +1,4 @@
-import { JsClipMeta } from "oxygen-core";
+import { JsClipMeta, Word } from "oxygen-core";
 import cx from "classnames";
 import React, { useState, useEffect } from "react";
 import { Pause, Play, Delete } from "./icons";
@@ -7,8 +7,10 @@ import AudioView from "./audio_view";
 export default function CurrentClip({
   clip,
   drawCurrentClipWaveform,
+  transcribe,
   time,
   timePercent,
+  duration,
   streaming,
   onPlay,
   onStop,
@@ -18,8 +20,10 @@ export default function CurrentClip({
 }: {
   clip: JsClipMeta;
   drawCurrentClipWaveform: (width: number, height: number) => Buffer | null;
+  transcribe: () => Word[];
   time: number;
   timePercent: number;
+  duration: number;
   streaming: boolean;
   onPlay: (cb: () => void) => void;
   onStop: () => void;
@@ -65,7 +69,9 @@ export default function CurrentClip({
       <AudioView
         drawCurrentClipWaveform={drawCurrentClipWaveform}
         timePercent={timePercent}
+        duration={duration}
         clipId={clip.id}
+        transcribe={transcribe}
         onSeek={onSeek}
       />
       <div className="flex flex-row mb-4">
