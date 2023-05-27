@@ -10,6 +10,7 @@ describe("CurrentClip", () => {
     const handleRename = jest.fn();
     const handleDelete = jest.fn();
     const handleSeek = jest.fn();
+    const handleTranscribe = null;
     const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
       return Buffer.from(Array(width * height * 4).fill(0));
     });
@@ -30,6 +31,8 @@ describe("CurrentClip", () => {
         onDelete={handleDelete}
         onSeek={handleSeek}
         drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        transcribe={handleTranscribe}
+        duration={625}
       />
     );
 
@@ -50,6 +53,7 @@ describe("CurrentClip", () => {
     const handleRename = jest.fn();
     const handleDelete = jest.fn();
     const handleSeek = jest.fn();
+    const handleTranscribe = null;
     const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
       return Buffer.from(Array(width * height * 4).fill(0));
     });
@@ -70,6 +74,8 @@ describe("CurrentClip", () => {
         onDelete={handleDelete}
         onSeek={handleSeek}
         drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        transcribe={handleTranscribe}
+        duration={625}
       />
     );
 
@@ -90,6 +96,7 @@ describe("CurrentClip", () => {
     const handleRename = jest.fn();
     const handleDelete = jest.fn();
     const handleSeek = jest.fn();
+    const handleTranscribe = null;
     const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
       return Buffer.from(Array(width * height * 4).fill(0));
     });
@@ -110,6 +117,8 @@ describe("CurrentClip", () => {
         onDelete={handleDelete}
         onSeek={handleSeek}
         drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        transcribe={handleTranscribe}
+        duration={625}
       />
     );
 
@@ -127,6 +136,7 @@ describe("CurrentClip", () => {
     const handleRename = jest.fn();
     const handleDelete = jest.fn();
     const handleSeek = jest.fn();
+    const handleTranscribe = null;
     const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
       return Buffer.from(Array(width * height * 4).fill(0));
     });
@@ -147,6 +157,8 @@ describe("CurrentClip", () => {
         onDelete={handleDelete}
         onSeek={handleSeek}
         drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        transcribe={handleTranscribe}
+        duration={625}
       />
     );
 

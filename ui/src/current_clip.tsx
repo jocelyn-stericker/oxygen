@@ -1,4 +1,4 @@
-import { JsClipMeta, Word } from "oxygen-core";
+import { JsClipMeta, Segment } from "oxygen-core";
 import cx from "classnames";
 import React, { useState, useEffect } from "react";
 import { Pause, Play, Delete } from "./icons";
@@ -20,7 +20,7 @@ export default function CurrentClip({
 }: {
   clip: JsClipMeta;
   drawCurrentClipWaveform: (width: number, height: number) => Buffer | null;
-  transcribe: () => Word[];
+  transcribe: () => Segment[];
   time: number;
   timePercent: number;
   duration: number;

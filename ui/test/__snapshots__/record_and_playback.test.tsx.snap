@@ -68,8 +68,8 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
           <canvas
             class="absolute w-full h-full"
             data-testid="current-clip-view"
-            height="688"
-            style="width: 736px; height: 688px; transform: scale(1); transform-origin: left top;"
+            height="632"
+            style="width: 736px; height: 632px; transform: scale(1); transform-origin: left top;"
             width="736"
           />
           <div
@@ -78,6 +78,9 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
             style="left: 100%;"
           />
         </div>
+        <div
+          class="m-2 w-full h-10 relative"
+        />
         <div
           class="flex flex-row mb-4"
         >
@@ -125,7 +128,7 @@ exports[`app [integration] can record and playback a clip: 1 recording 1`] = `
 - First value
 + Second value
 
-@@ -80,31 +80,37 @@
+@@ -83,31 +83,37 @@
           >
             <div
               class="flex-grow"
@@ -188,7 +191,7 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
             >
               <h2
                 class="p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center"
-@@ -46,74 +46,128 @@
+@@ -46,77 +46,131 @@
                   />
                 </svg>
                  Record New Clip
@@ -259,10 +262,10 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
             <canvas
               class="absolute w-full h-full"
               data-testid="current-clip-view"
--             height="688"
--             style="width: 736px; height: 688px; transform: scale(1); transform-origin: left top;"
-+             height="628"
-+             style="width: 736px; height: 628px; transform: scale(1); transform-origin: left top;"
+-             height="632"
+-             style="width: 736px; height: 632px; transform: scale(1); transform-origin: left top;"
++             height="572"
++             style="width: 736px; height: 572px; transform: scale(1); transform-origin: left top;"
               width="736"
             />
             <div
@@ -272,6 +275,9 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
 +             style="left: 0%;"
             />
           </div>
+          <div
+            class="m-2 w-full h-10 relative"
+          />
           <div
             class="flex flex-row mb-4"
           >
