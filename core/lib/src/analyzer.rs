@@ -19,12 +19,10 @@ impl Analyzer {
 
     /// Return a transcript of the audio using whisper.cpp
     pub fn transcribe(&self, clip: &AudioClip) -> Result<Vec<Segment>> {
-        eprintln!("A");
         let mut state = self
             .whisper_context
             .create_state()
             .expect("failed to create state");
-        eprintln!("B");
 
         // create a params object
         // note that currently the only implemented strategy is Greedy, BeamSearch is a WIP
