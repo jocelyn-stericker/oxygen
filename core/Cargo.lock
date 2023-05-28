@@ -1887,7 +1887,7 @@ dependencies = [
 [[package]]
 name = "whisper-rs"
 version = "0.8.0"
-source = "git+https://github.com/jocelyn-stericker/whisper-rs.git?branch=fpic#7a29eb93e65003019d2dcbf4d3baf110560c4619"
+source = "git+https://github.com/jocelyn-stericker/whisper-rs.git?rev=0a8a791fad15ec0ab98c353917087078d35b964e#0a8a791fad15ec0ab98c353917087078d35b964e"
 dependencies = [
  "whisper-rs-sys",
 ]
@@ -1895,7 +1895,7 @@ dependencies = [
 [[package]]
 name = "whisper-rs-sys"
 version = "0.6.0"
-source = "git+https://github.com/jocelyn-stericker/whisper-rs.git?branch=fpic#7a29eb93e65003019d2dcbf4d3baf110560c4619"
+source = "git+https://github.com/jocelyn-stericker/whisper-rs.git?rev=0a8a791fad15ec0ab98c353917087078d35b964e#0a8a791fad15ec0ab98c353917087078d35b964e"
 dependencies = [
  "bindgen 0.64.0",
  "cfg-if",
