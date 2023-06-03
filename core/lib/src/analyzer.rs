@@ -5,15 +5,6 @@ use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperError};
 #[cfg(not(feature = "whisper_dummy"))]
 const GGML_BASE_EN_Q5: &[u8] = include_bytes!("./ggml-base.en-q5_0.bin");
 
-#[cfg(not(feature = "whisper_dummy"))]
-const NUM_THREADS: i32 = 4;
-
-#[cfg(feature = "whisper_dummy")]
-const GGML_BASE_EN_Q5: &[u8] = include_bytes!("./for-tests-ggml-base.en.bin");
-
-#[cfg(feature = "whisper_dummy")]
-const NUM_THREADS: i32 = 1;
-
 pub struct Analyzer {
     whisper_context: Option<WhisperContext>,
 }
@@ -27,6 +18,7 @@ impl Analyzer {
         })
     }
 
+    #[cfg(not(feature = "whisper_dummy"))]
     fn whisper_context(&mut self) -> Result<&mut WhisperContext> {
         let ctx = &mut self.whisper_context;
         if let Some(ctx) = ctx {
@@ -37,6 +29,7 @@ impl Analyzer {
     }
 
     /// Return a transcript of the audio using whisper.cpp
+    #[cfg(not(feature = "whisper_dummy"))]
     pub fn transcribe(&mut self, clip: &AudioClip) -> Result<Vec<Segment>> {
         let mut state = self
             .whisper_context()?
@@ -48,7 +41,7 @@ impl Analyzer {
         // n_past defaults to 0
         let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
 
-        params.set_n_threads(NUM_THREADS);
+        params.set_n_threads(4);
         params.set_token_timestamps(true);
         params.set_language(Some("en"));
         params.set_suppress_blank(false);
@@ -103,5 +96,10 @@ impl Analyzer {
         }
 
         Ok(segments)
+    }
+
+    #[cfg(feature = "whisper_dummy")]
+    pub fn transcribe(&mut self, clip: &AudioClip) -> Result<Vec<Segment>> {
+        Ok(vec![])
     }
 }
