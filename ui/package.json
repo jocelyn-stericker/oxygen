@@ -12,6 +12,7 @@
     "dev:sync-electron": "run-s prod:build-core dev:wait-for-parcel dev:electron",
     "dev:build-core": "cd ../core/napi && npm run build:debug",
     "dev:build-core-with-jack": "cd ../core/napi && npm run build:debug-with-jack",
+    "dev:build-core-with-whisper-dummy": "cd ../core/napi && npm run build:debug-with-jack",
     "dev:wait-for-parcel": "wait-on http://localhost:1234",
     "dev:electron": "electron .",
     "dev:core-and-jest": "run-s dev:build-core jest",
@@ -20,6 +21,7 @@
     "prod:parcel": "rimraf dist && parcel build ./src/index.html --public-url ./",
     "prod:build-core": "cd ../core/napi && npm run build",
     "prod:build-core-with-jack": "cd ../core/napi && npm run build:with-jack",
+    "prod:build-core-with-whisper-dummy": "cd ../core/napi && npm run build:with-whisper-dummy",
     "prod:package": "rimraf out && npm run prod:make-deps && electron-forge package",
     "prod:make": "rimraf out && npm run prod:make-deps && electron-forge make",
     "prod:publish": "rimraf out && npm run prod:make-deps && electron-forge publish",
@@ -31,7 +33,7 @@
     "eslint:fix": "eslint --fix . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
     "jest": "jest",
     "tsc": "tsc --noEmit",
-    "test": "npm-run-all -p prettier eslint prod:build-core -p jest tsc",
+    "test": "npm-run-all -p prettier eslint prod:build-core-with-whisper-dummy -p jest tsc",
     "test-with-jack": "npm-run-all -p prettier eslint prod:build-core-with-jack -p jest tsc"
   },
   "devDependencies": {

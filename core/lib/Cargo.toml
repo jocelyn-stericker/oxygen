@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 jack = ["cpal/jack"]
+whisper-dummy = []
 
 [dependencies]
 cpal = { version = "0.15.2", features = [] }

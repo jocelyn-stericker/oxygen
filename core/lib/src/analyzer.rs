@@ -2,7 +2,11 @@ use crate::audio_clip::AudioClip;
 use color_eyre::eyre::Result;
 use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperError};
 
+#[cfg(not(whisper_dummy))]
 const GGML_BASE_EN_Q5: &[u8] = include_bytes!("./ggml-base.en-q5_0.bin");
+
+#[cfg(whisper_dummy)]
+const GGML_BASE_EN_Q5: &[u8] = include_bytes!("./for-tests-ggml-base.en.bin");
 
 pub struct Analyzer {
     whisper_context: Option<WhisperContext>,
