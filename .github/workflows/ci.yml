@@ -70,6 +70,7 @@ jobs:
       - name: clippy (core)
         run: cargo clippy
         working-directory: ./core
+        if: matrix.os == 'ubuntu-20.04'
       - name: install dependencies (ui)
         run: npm ci
         working-directory: ./ui

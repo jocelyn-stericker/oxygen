@@ -5,8 +5,14 @@ use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperError};
 #[cfg(not(feature = "whisper_dummy"))]
 const GGML_BASE_EN_Q5: &[u8] = include_bytes!("./ggml-base.en-q5_0.bin");
 
+#[cfg(not(feature = "whisper_dummy"))]
+const NUM_THREADS: i32 = 4;
+
 #[cfg(feature = "whisper_dummy")]
 const GGML_BASE_EN_Q5: &[u8] = include_bytes!("./for-tests-ggml-base.en.bin");
+
+#[cfg(feature = "whisper_dummy")]
+const NUM_THREADS: i32 = 1;
 
 pub struct Analyzer {
     whisper_context: Option<WhisperContext>,
@@ -42,7 +48,7 @@ impl Analyzer {
         // n_past defaults to 0
         let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
 
-        params.set_n_threads(4);
+        params.set_n_threads(NUM_THREADS);
         params.set_token_timestamps(true);
         params.set_language(Some("en"));
         params.set_suppress_blank(false);
