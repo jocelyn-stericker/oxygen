@@ -60,7 +60,7 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
         </ul>
       </div>
       <div
-        class="flex flex-col flex-grow"
+        class="flex flex-col flex-grow overflow-hidden"
       >
         <div
           class="flex-grow relative overflow-hidden"
@@ -226,7 +226,7 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
           </ul>
         </div>
         <div
-          class="flex flex-col flex-grow"
+          class="flex flex-col flex-grow overflow-hidden"
         >
           <div
 +           class="flex flex-row"
@@ -377,6 +377,6 @@ exports[`app [integration] can record and playback a clip: 3 delta from initial 
           </ul>
         </div>
         <div
-          class="flex flex-col flex-grow"
+          class="flex flex-col flex-grow overflow-hidden"
         >"
 `;
