@@ -16,7 +16,7 @@ export default function RecordTab({
   onStop: () => void;
 }) {
   return (
-    <div className="flex flex-col flex-grow">
+    <div className="flex flex-col flex-grow overflow-hidden">
       <AudioView
         drawCurrentClipWaveform={drawCurrentClipWaveform}
         timePercent={1}

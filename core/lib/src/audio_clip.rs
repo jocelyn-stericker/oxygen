@@ -514,7 +514,7 @@ impl AudioClip {
         }
 
         let spec = hound::WavSpec {
-            channels: 1,
+            channels: 2,
             sample_rate: self.sample_rate,
             bits_per_sample: 32,
             sample_format: hound::SampleFormat::Float,
@@ -522,6 +522,7 @@ impl AudioClip {
 
         let mut writer = hound::WavWriter::create(path, spec)?;
         for sample in &self.samples {
+            writer.write_sample(*sample)?;
             writer.write_sample(*sample)?;
         }
 
