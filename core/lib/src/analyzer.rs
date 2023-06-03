@@ -5,22 +5,31 @@ use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperError};
 const GGML_BASE_EN_Q5: &[u8] = include_bytes!("./ggml-base.en-q5_0.bin");
 
 pub struct Analyzer {
-    whisper_context: WhisperContext,
+    whisper_context: Option<WhisperContext>,
 }
 
 type Segment = ((f64, f64), String);
 
 impl Analyzer {
     pub fn new() -> Result<Analyzer> {
-        let whisper_context = WhisperContext::new_from_buffer(GGML_BASE_EN_Q5)?;
+        Ok(Analyzer {
+            whisper_context: None,
+        })
+    }
 
-        Ok(Analyzer { whisper_context })
+    fn whisper_context(&mut self) -> Result<&mut WhisperContext> {
+        let ctx = &mut self.whisper_context;
+        if let Some(ctx) = ctx {
+            Ok(ctx)
+        } else {
+            Ok(ctx.insert(WhisperContext::new_from_buffer(GGML_BASE_EN_Q5)?))
+        }
     }
 
     /// Return a transcript of the audio using whisper.cpp
-    pub fn transcribe(&self, clip: &AudioClip) -> Result<Vec<Segment>> {
+    pub fn transcribe(&mut self, clip: &AudioClip) -> Result<Vec<Segment>> {
         let mut state = self
-            .whisper_context
+            .whisper_context()?
             .create_state()
             .expect("failed to create state");
 

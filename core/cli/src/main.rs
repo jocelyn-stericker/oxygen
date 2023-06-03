@@ -142,7 +142,7 @@ fn main() -> Result<()> {
             }
         }
         Commands::Transcribe { name } => {
-            let analyzer = Analyzer::new()?;
+            let mut analyzer = Analyzer::new()?;
             if let Some(clip) = db.load(&name)? {
                 for segment in &analyzer.transcribe(&clip)? {
                     println!(
