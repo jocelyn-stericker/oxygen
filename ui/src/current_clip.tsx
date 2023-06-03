@@ -37,7 +37,7 @@ export default function CurrentClip({
   }, [clip.name]);
 
   return (
-    <div className="flex flex-col flex-grow">
+    <div className="flex flex-col flex-grow overflow-hidden">
       <div className="flex flex-row">
         <input
           data-testid="current-clip-name"
