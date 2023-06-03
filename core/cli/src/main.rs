@@ -1,6 +1,7 @@
 use chrono::prelude::*;
 use clap::{Parser, Subcommand};
 use color_eyre::eyre::{eyre, Result};
+use oxygen_core::analyzer::Analyzer;
 use oxygen_core::audio_clip::{AudioBackend, AudioClip};
 use oxygen_core::db::Db;
 use std::{ffi::OsStr, path::Path, sync::mpsc::channel};
@@ -37,6 +38,12 @@ enum Commands {
     #[clap(arg_required_else_help = true)]
     Play {
         /// The name of the clip to play.
+        name: String,
+    },
+    /// Prints a transcript of the clip.
+    #[clap(arg_required_else_help = true)]
+    Transcribe {
+        /// The name of the clip to transcribe.
         name: String,
     },
     /// Rename a clip with the given name.
@@ -130,6 +137,21 @@ fn main() -> Result<()> {
                     done_tx.send(()).unwrap();
                 });
                 done_rx.recv()?;
+            } else {
+                return Err(eyre!("No such clip."));
+            }
+        }
+        Commands::Transcribe { name } => {
+            let mut analyzer = Analyzer::new()?;
+            if let Some(clip) = db.load(&name)? {
+                for segment in &analyzer.transcribe(&clip)? {
+                    println!(
+                        "{:10.3} - {:10.3} {:30}",
+                        (segment.0).0,
+                        (segment.0).1,
+                        segment.1
+                    )
+                }
             } else {
                 return Err(eyre!("No such clip."));
             }

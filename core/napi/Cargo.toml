@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 
 [features]
 jack = ["oxygen-core/jack"]
+whisper_dummy = ["oxygen-core/whisper_dummy"]
 
 [dependencies]
 oxygen-core = { path = "../lib" }

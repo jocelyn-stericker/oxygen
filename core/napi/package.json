@@ -23,7 +23,9 @@
     "build": "napi build --platform --release",
     "build:debug": "napi build --platform",
     "build:with-jack": "napi build --platform --release --features jack",
-    "build:debug-with-jack": "napi build --platform --features jack"
+    "build:with-whisper-dummy": "napi build --platform --features whisper_dummy",
+    "build:debug-with-jack": "napi build --platform --features jack",
+    "build:debug-with-whisper-dummy": "napi build --platform --features whisper_dummy"
   },
   "devDependencies": {
     "@napi-rs/cli": "^2.15.2"
