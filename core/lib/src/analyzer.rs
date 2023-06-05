@@ -1,5 +1,11 @@
 use crate::audio_clip::AudioClip;
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{eyre, Result};
+use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
+use futures::channel::oneshot::{channel as oneshot_channel, Sender as OneshotSender};
+use futures::SinkExt;
+use futures::StreamExt;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperError};
 
 #[cfg(not(feature = "whisper_dummy"))]
@@ -101,5 +107,46 @@ impl Analyzer {
     #[cfg(feature = "whisper_dummy")]
     pub fn transcribe(&mut self, clip: &AudioClip) -> Result<Vec<Segment>> {
         Ok(vec![])
+    }
+}
+
+enum Event {
+    Transcribe(AudioClip, OneshotSender<Result<Vec<Segment>>>),
+}
+
+async fn event_queue(mut analyzer: Analyzer, mut events: UnboundedReceiver<Event>) {
+    while let Some(event) = events.next().await {
+        let Event::Transcribe(clip, sender) = event;
+        let result = analyzer.transcribe(&clip);
+        sender.send(result).expect("failed to send result");
+    }
+}
+
+pub struct AsyncAnalyzer {
+    events: Arc<Mutex<UnboundedSender<Event>>>,
+}
+
+impl AsyncAnalyzer {
+    pub fn new() -> Result<AsyncAnalyzer> {
+        let (sender, receiver) = unbounded();
+        tokio::spawn(async move {
+            let analyzer = Analyzer::new().expect("failed to create analyzer");
+            event_queue(analyzer, receiver).await
+        });
+
+        Ok(AsyncAnalyzer {
+            events: Arc::new(Mutex::new(sender)),
+        })
+    }
+
+    pub async fn transcribe(&self, clip: AudioClip) -> Result<Vec<Segment>> {
+        let (sender, receiver) = oneshot_channel();
+
+        let a = self.events.lock().await;
+        a.clone().send(Event::Transcribe(clip, sender)).await?;
+
+        receiver
+            .await
+            .map_err(|_| eyre!("failed to receive result"))?
     }
 }

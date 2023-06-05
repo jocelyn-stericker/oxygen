@@ -1,4 +1,4 @@
-import { UiState } from "oxygen-core";
+import { Segment, UiState } from "oxygen-core";
 import React, { useState, useCallback, useRef, useReducer } from "react";
 import cx from "classnames";
 
@@ -37,7 +37,10 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
     [uiState]
   );
 
-  const transcribe = useCallback(() => uiState.transcribe(), [uiState]);
+  const transcribe = useCallback(
+    () => uiState.transcribe() as Promise<Segment[]>,
+    [uiState]
+  );
 
   const handlePlay = useCallback(
     (cb: () => void) => {

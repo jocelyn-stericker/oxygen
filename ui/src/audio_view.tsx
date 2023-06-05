@@ -15,7 +15,7 @@ export default function AudioView({
   timePercent: number;
   duration?: number;
   clipId?: bigint | number;
-  transcribe?: () => Segment[];
+  transcribe?: () => Promise<Segment[]>;
   onSeek: (timePercent: number) => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -62,13 +62,17 @@ export default function AudioView({
   >(null);
 
   const retranscribe = useCallback(() => {
-    setTranscription(
-      transcribe?.().map((segment) => ({
-        t0: segment.t0,
-        t1: segment.t1,
-        segment: segment.segment,
-      }))
-    );
+    (async () => {
+      if (transcribe) {
+        setTranscription(
+          (await transcribe()).map((segment) => ({
+            t0: segment.t0,
+            t1: segment.t1,
+            segment: segment.segment,
+          }))
+        );
+      }
+    })();
   }, [transcribe]);
 
   useEffect(() => {

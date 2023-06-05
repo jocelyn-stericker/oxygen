@@ -19,3 +19,5 @@ hound = "3.5.0"
 log = "0.4.17"
 rusqlite = { version = "0.29.0", features = ["bundled"] }
 whisper-rs = {git = "https://github.com/tazz4843/whisper-rs", rev = "bf6d6fcf17c39e008d8280a174f135a95c517b4e"}
+futures = "0.3"
+tokio = "1.28"
