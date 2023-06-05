@@ -1,4 +1,4 @@
-import { Segment, UiState } from "oxygen-core";
+import { UiState } from "oxygen-core";
 import React, { useState, useCallback, useRef, useReducer } from "react";
 import cx from "classnames";
 
