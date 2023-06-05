@@ -1,4 +1,9 @@
+use napi::bindgen_prelude::ToNapiValue;
+use napi::NapiValue;
+
+use std::sync::Arc;
 use std::{ffi::OsStr, path::Path};
+use tokio::sync::Mutex;
 
 use chrono::prelude::*;
 use napi::{
@@ -7,7 +12,7 @@ use napi::{
     Env, Error, JsDate, JsFunction, JsUnknown, Result,
 };
 use napi_derive::napi;
-use oxygen_core::analyzer::Analyzer;
+use oxygen_core::analyzer::AsyncAnalyzer;
 use oxygen_core::audio_clip::{
     AudioBackend, AudioClip, ClipHandle, PlayHandle, RecordHandle, StreamHandle,
 };
@@ -33,7 +38,7 @@ pub struct UiState {
     deleted_clip: Option<AudioClip>,
     update_cb: ThreadsafeFunction<(), ErrorStrategy::Fatal>,
     host: AudioBackend,
-    analyzer: Analyzer,
+    analyzer: Arc<Mutex<AsyncAnalyzer>>,
 }
 
 #[napi]
@@ -108,7 +113,9 @@ impl UiState {
             #[cfg(not(feature = "jack"))]
             host: AudioBackend::Default,
 
-            analyzer: Analyzer::new().map_err(|e| Error::from_reason(format!("{:?}", e)))?,
+            analyzer: Arc::new(Mutex::new(
+                AsyncAnalyzer::new().map_err(|e| Error::from_reason(format!("{:?}", e)))?,
+            )),
         })
     }
 
@@ -367,30 +374,28 @@ impl UiState {
         Ok(Some(buffer.into()))
     }
 
-    #[napi]
-    pub fn transcribe(&mut self) -> Result<Option<Vec<Segment>>> {
+    #[napi(ts_return_type = "Promise<Segment[]>")]
+    pub fn transcribe(&self, env: Env) -> Result<JsUnknown> {
         let clip: &AudioClip = match &self.tab {
             Tab::Record {
                 handle: Some(_handle),
             } => {
-                return Ok(None);
+                return Ok(env.get_null()?.into_unknown());
             }
             Tab::Record { handle: None } => {
-                return Ok(None);
+                return Ok(env.get_null()?.into_unknown());
             }
             Tab::Clip { audio_clip, .. } => audio_clip as &AudioClip,
         };
 
-        self.analyzer
-            .transcribe(clip)
-            .map_err(|err| Error::from_reason(format!("{:?}", err)))
-            .map(|some| {
-                Some(
-                    some.into_iter()
-                        .map(|((t0, t1), segment)| Segment { t0, t1, segment })
-                        .collect::<Vec<Segment>>(),
-                )
-            })
+        let analyzer = self.analyzer.clone();
+        let clip = clip.clone();
+
+        Ok(env
+            .execute_tokio_future(transcribe(analyzer, clip), |env, result| {
+                cast_js_value(env, result)
+            })?
+            .into_unknown())
     }
 
     #[napi(getter)]
@@ -509,7 +514,28 @@ impl UiState {
 
             Ok(tmp_path)
         } else {
-            return Err(Error::from_reason(format!("No clip with ID {}", id)));
+            Err(Error::from_reason(format!("No clip with ID {}", id)))
         }
     }
+}
+
+async fn transcribe(analyzer: Arc<Mutex<AsyncAnalyzer>>, clip: AudioClip) -> Result<Vec<Segment>> {
+    let analyzer = analyzer.lock().await;
+
+    analyzer
+        .transcribe(clip)
+        .await
+        .map_err(|err| Error::from_reason(format!("{:?}", err)))
+        .map(|some| {
+            some.into_iter()
+                .map(|((t0, t1), segment)| Segment { t0, t1, segment })
+                .collect::<Vec<Segment>>()
+        })
+}
+
+pub fn cast_js_value<T>(env: &mut Env, value: T) -> Result<JsUnknown>
+where
+    T: ToNapiValue,
+{
+    unsafe { JsUnknown::from_raw(env.raw(), T::to_napi_value(env.raw(), value)?) }
 }

@@ -20,7 +20,7 @@ export default function CurrentClip({
 }: {
   clip: JsClipMeta;
   drawCurrentClipWaveform: (width: number, height: number) => Buffer | null;
-  transcribe: () => Segment[];
+  transcribe: () => Promise<Segment[]>;
   time: number;
   timePercent: number;
   duration: number;
