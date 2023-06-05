@@ -374,7 +374,7 @@ impl UiState {
         Ok(Some(buffer.into()))
     }
 
-    #[napi]
+    #[napi(ts_return_type = "Promise<Segment[]>")]
     pub fn transcribe(&self, env: Env) -> Result<JsUnknown> {
         let clip: &AudioClip = match &self.tab {
             Tab::Record {
@@ -519,21 +519,17 @@ impl UiState {
     }
 }
 
-async fn transcribe(
-    analyzer: Arc<Mutex<AsyncAnalyzer>>,
-    clip: AudioClip,
-) -> Result<Option<Vec<Segment>>> {
-    let a = analyzer.lock().await;
-    let a = a.transcribe(clip);
+async fn transcribe(analyzer: Arc<Mutex<AsyncAnalyzer>>, clip: AudioClip) -> Result<Vec<Segment>> {
+    let analyzer = analyzer.lock().await;
 
-    a.await
+    analyzer
+        .transcribe(clip)
+        .await
         .map_err(|err| Error::from_reason(format!("{:?}", err)))
         .map(|some| {
-            Some(
-                some.into_iter()
-                    .map(|((t0, t1), segment)| Segment { t0, t1, segment })
-                    .collect::<Vec<Segment>>(),
-            )
+            some.into_iter()
+                .map(|((t0, t1), segment)| Segment { t0, t1, segment })
+                .collect::<Vec<Segment>>()
         })
 }
 

@@ -61,19 +61,23 @@ export default function AudioView({
     }>
   >(null);
 
-  const retranscribe = useCallback(() => {
+  useEffect(() => {
+    let expired = false;
+    setTranscription([]);
+
     (async () => {
       if (transcribe) {
-        setTranscription(
-          (await transcribe()).map((segment) => ({
-            t0: segment.t0,
-            t1: segment.t1,
-            segment: segment.segment,
-          }))
-        );
+        const transcription = await transcribe();
+        if (!expired) {
+          setTranscription(transcription);
+        }
       }
     })();
-  }, [transcribe]);
+
+    return () => {
+      expired = true;
+    };
+  }, [clipId, transcribe]);
 
   useEffect(() => {
     // ResizeObserver calls immediately on observe, so we need to work around that.
@@ -103,7 +107,6 @@ export default function AudioView({
   }, [redraw, streaming]);
 
   useEffect(redraw, [redraw, clipId]);
-  useEffect(retranscribe, [retranscribe, clipId]);
 
   return (
     <>

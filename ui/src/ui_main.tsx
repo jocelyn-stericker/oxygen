@@ -37,10 +37,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
     [uiState]
   );
 
-  const transcribe = useCallback(
-    () => uiState.transcribe() as Promise<Segment[]>,
-    [uiState]
-  );
+  const transcribe = useCallback(() => uiState.transcribe(), [uiState]);
 
   const handlePlay = useCallback(
     (cb: () => void) => {

@@ -105,7 +105,7 @@ impl Analyzer {
     }
 
     #[cfg(feature = "whisper_dummy")]
-    pub fn transcribe(&mut self, clip: &AudioClip) -> Result<Vec<Segment>> {
+    pub fn transcribe(&mut self, _clip: &AudioClip) -> Result<Vec<Segment>> {
         Ok(vec![])
     }
 }
@@ -142,8 +142,8 @@ impl AsyncAnalyzer {
     pub async fn transcribe(&self, clip: AudioClip) -> Result<Vec<Segment>> {
         let (sender, receiver) = oneshot_channel();
 
-        let a = self.events.lock().await;
-        a.clone().send(Event::Transcribe(clip, sender)).await?;
+        let mut events = self.events.lock().await;
+        events.send(Event::Transcribe(clip, sender)).await?;
 
         receiver
             .await
