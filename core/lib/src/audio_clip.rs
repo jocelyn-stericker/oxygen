@@ -14,6 +14,8 @@ use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
 use symphonia::core::probe::Hint;
 
+use crate::spectrum;
+
 pub struct RecordState {
     clip: AudioClip,
 }
@@ -130,17 +132,37 @@ impl StreamHandle for PlayHandle {
 }
 
 pub trait ClipHandle {
-    fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn>;
+    fn render_waveform(&self, range: (usize, usize), width: usize, height: usize) -> Vec<u8>;
+    fn render_spectrogram(
+        &self,
+        range: (usize, usize),
+        width: usize,
+        height: usize,
+    ) -> Result<Vec<u8>>;
     fn num_samples(&self) -> usize;
     fn sample_rate(&self) -> usize;
 }
 
 impl ClipHandle for RecordHandle {
-    fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn> {
+    fn render_waveform(&self, range: (usize, usize), width: usize, height: usize) -> Vec<u8> {
         let mut state = self.clip.lock().unwrap();
         let state = state.as_mut().unwrap();
 
-        state.clip.render_waveform(range, pixels)
+        state.clip.render_waveform(range, width, height)
+    }
+
+    fn render_spectrogram(
+        &self,
+        range: (usize, usize),
+        width: usize,
+        height: usize,
+    ) -> Result<Vec<u8>> {
+        let mut lock = self.clip.lock().unwrap();
+        let state = lock.as_mut().unwrap();
+        let clip = state.clip.clone();
+        drop(lock);
+
+        clip.render_spectrogram(range, width, height)
     }
 
     fn num_samples(&self) -> usize {
@@ -159,8 +181,17 @@ impl ClipHandle for RecordHandle {
 }
 
 impl ClipHandle for AudioClip {
-    fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn> {
-        self.render_waveform(range, pixels)
+    fn render_waveform(&self, range: (usize, usize), width: usize, height: usize) -> Vec<u8> {
+        self.render_waveform(range, width, height)
+    }
+
+    fn render_spectrogram(
+        &self,
+        range: (usize, usize),
+        width: usize,
+        height: usize,
+    ) -> Result<Vec<u8>> {
+        self.render_spectrogram(range, width, height)
     }
 
     fn num_samples(&self) -> usize {
@@ -531,12 +562,12 @@ impl AudioClip {
         Ok(())
     }
 
-    pub fn render_waveform(&self, range: (usize, usize), pixels: usize) -> Vec<DisplayColumn> {
+    pub fn render_waveform(&self, range: (usize, usize), width: usize, height: usize) -> Vec<u8> {
         let min_t = range.0.min(self.samples.len()) as f32;
         let max_t = (range.1.min(self.samples.len()) as f32).max(min_t);
-        let samples_per_pixel = (max_t - min_t) / (pixels as f32);
+        let samples_per_pixel = (max_t - min_t) / (width as f32);
 
-        (0..pixels)
+        let columns: Vec<DisplayColumn> = (0..width)
             .map(|pixel_i| {
                 let mut min = 1.0f32;
                 let mut max = -1.0f32;
@@ -564,7 +595,36 @@ impl AudioClip {
 
                 DisplayColumn { min, max }
             })
-            .collect()
+            .collect();
+
+        let mut buffer = vec![0; width * height * 4];
+
+        for (x, column) in columns.iter().enumerate() {
+            let min_y = ((height as f32) * (column.min + 1.0) / 2.0)
+                .floor()
+                .max(0.0) as usize;
+            let max_y =
+                (((height as f32) * (column.max + 1.0) / 2.0).ceil() as usize).min(height - 1);
+
+            for y in min_y..=max_y {
+                // purple-900 :)
+                buffer[y * width * 4 + x * 4] = 88;
+                buffer[y * width * 4 + x * 4 + 1] = 28;
+                buffer[y * width * 4 + x * 4 + 2] = 135;
+                buffer[y * width * 4 + x * 4 + 3] = 255;
+            }
+        }
+
+        buffer
+    }
+
+    pub fn render_spectrogram(
+        &self,
+        range: (usize, usize),
+        width: usize,
+        height: usize,
+    ) -> Result<Vec<u8>> {
+        spectrum::render_spectrogram(self, range, width, height)
     }
 
     pub fn num_samples(&self) -> usize {
@@ -585,9 +645,10 @@ mod tests {
             samples: vec![],
             sample_rate: 44100,
         };
-        assert_eq!(clip.render_waveform((0, 0), 100).len(), 100);
-        assert_eq!(clip.render_waveform((0, 0), 0).len(), 0);
-        assert_eq!(clip.render_waveform((100, 0), 0).len(), 0);
-        assert_eq!(clip.render_waveform((100, 200), 100).len(), 100);
+        assert_eq!(clip.render_waveform((0, 0), 100, 1).len(), 100 * 4);
+        assert_eq!(clip.render_waveform((0, 0), 0, 1).len(), 0);
+        assert_eq!(clip.render_waveform((100, 0), 0, 1).len(), 0);
+        assert_eq!(clip.render_waveform((100, 200), 100, 1).len(), 100 * 4);
+        assert_eq!(clip.render_waveform((100, 200), 100, 4).len(), 400 * 4);
     }
 }

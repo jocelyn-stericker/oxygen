@@ -1,4 +1,4 @@
-import { UiState } from "oxygen-core";
+import { RenderMode, UiState } from "oxygen-core";
 import React, { useState, useCallback, useRef, useReducer } from "react";
 import cx from "classnames";
 
@@ -31,9 +31,8 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
   );
   const toaster = useRef<ToasterInterface>(null);
 
-  const drawCurrentClipWaveform = useCallback(
-    (width: number, height: number) =>
-      uiState.drawCurrentClipWaveform(width, height),
+  const drawCurrentClip = useCallback(
+    (width: number, height: number) => uiState.drawCurrentClip(width, height),
     [uiState]
   );
 
@@ -93,6 +92,13 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
       "undoDeleteCurrentClip"
     );
   }, [uiState]);
+
+  const handleSetRenderMode = useCallback(
+    (renderMode: RenderMode) => {
+      uiState.setRenderMode(renderMode);
+    },
+    [uiState]
+  );
 
   const handleRecord = useCallback(() => {
     uiState.record();
@@ -170,25 +176,29 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
       {uiState.currentClipId != null && (
         <CurrentClip
           clip={uiState.currentClip}
-          drawCurrentClipWaveform={drawCurrentClipWaveform}
+          drawCurrentClip={drawCurrentClip}
           transcribe={transcribe}
           time={uiState.time}
           timePercent={uiState.timePercent}
           duration={uiState.duration}
           streaming={uiState.streaming}
+          renderMode={uiState.renderMode}
           onPlay={handlePlay}
           onStop={handleStop}
           onSeek={handleSeek}
           onRename={handleRename}
           onDelete={handleDelete}
+          onSetRenderMode={handleSetRenderMode}
         />
       )}
       {uiState.recordTabSelected && (
         <RecordTab
           streaming={uiState.streaming}
-          drawCurrentClipWaveform={drawCurrentClipWaveform}
+          renderMode={uiState.renderMode}
+          drawCurrentClip={drawCurrentClip}
           onRecord={handleRecord}
           onStop={handleStop}
+          onSetRenderMode={handleSetRenderMode}
         />
       )}
       {dragOver && (

@@ -1,4 +1,4 @@
-import { JsClipMeta, Segment } from "oxygen-core";
+import { JsClipMeta, Segment, RenderMode } from "oxygen-core";
 import cx from "classnames";
 import React, { useState, useEffect } from "react";
 import { Pause, Play, Delete } from "./icons";
@@ -6,7 +6,7 @@ import AudioView from "./audio_view";
 
 export default function CurrentClip({
   clip,
-  drawCurrentClipWaveform,
+  drawCurrentClip,
   transcribe,
   time,
   timePercent,
@@ -17,9 +17,11 @@ export default function CurrentClip({
   onSeek,
   onRename,
   onDelete,
+  onSetRenderMode,
+  renderMode,
 }: {
   clip: JsClipMeta;
-  drawCurrentClipWaveform: (width: number, height: number) => Buffer | null;
+  drawCurrentClip: (width: number, height: number) => Buffer | null;
   transcribe: () => Promise<Segment[]>;
   time: number;
   timePercent: number;
@@ -30,6 +32,8 @@ export default function CurrentClip({
   onSeek: (timePercent: number) => void;
   onRename: (name: string) => void;
   onDelete: () => void;
+  onSetRenderMode: (renderMode: RenderMode) => void;
+  renderMode: RenderMode;
 }) {
   const [temporaryName, setTemporaryName] = useState(clip.name);
   useEffect(() => {
@@ -67,12 +71,14 @@ export default function CurrentClip({
         </button>
       </div>
       <AudioView
-        drawCurrentClipWaveform={drawCurrentClipWaveform}
+        drawCurrentClip={drawCurrentClip}
         timePercent={timePercent}
         duration={duration}
         clipId={clip.id}
         transcribe={transcribe}
         onSeek={onSeek}
+        onSetRenderMode={onSetRenderMode}
+        renderMode={renderMode}
       />
       <div className="flex flex-row mb-4">
         <div
