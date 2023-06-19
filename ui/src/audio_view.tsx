@@ -1,22 +1,28 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Segment } from "oxygen-core";
+import cx from "classnames";
+import { RenderMode, Segment } from "oxygen-core";
+import { Spectrogram } from "./icons";
 
 export default function AudioView({
-  drawCurrentClipWaveform,
+  drawCurrentClip,
   streaming,
   timePercent,
   duration,
   clipId,
   transcribe,
   onSeek,
+  onSetRenderMode,
+  renderMode,
 }: {
-  drawCurrentClipWaveform: (width: number, height: number) => Buffer | null;
+  drawCurrentClip: (width: number, height: number) => Buffer | null;
   streaming?: boolean;
   timePercent: number;
   duration?: number;
   clipId?: bigint | number;
   transcribe?: () => Promise<Segment[]>;
   onSeek: (timePercent: number) => void;
+  onSetRenderMode: (renderMode: RenderMode) => void;
+  renderMode: RenderMode;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const canvasContainer = useRef<HTMLDivElement>(null);
@@ -36,10 +42,7 @@ export default function AudioView({
     canvas.current.style.transform = `scale(${1 / devicePixelRatio})`;
     canvas.current.style.transformOrigin = "top left";
 
-    const buffer = drawCurrentClipWaveform(
-      canvas.current.width,
-      canvas.current.height
-    );
+    const buffer = drawCurrentClip(canvas.current.width, canvas.current.height);
 
     const array = new Uint8ClampedArray(buffer);
     if (array.length > 0) {
@@ -51,7 +54,7 @@ export default function AudioView({
       const context = canvas.current.getContext("2d");
       context.putImageData(image, 0, 0);
     }
-  }, [drawCurrentClipWaveform]);
+  }, [drawCurrentClip]);
 
   const [transcription, setTranscription] = useState<
     Array<{
@@ -106,7 +109,7 @@ export default function AudioView({
     }
   }, [redraw, streaming]);
 
-  useEffect(redraw, [redraw, clipId]);
+  useEffect(redraw, [redraw, clipId, renderMode]);
 
   return (
     <>
@@ -125,6 +128,33 @@ export default function AudioView({
           className="absolute w-[1px] bg-blue-400 h-full"
           style={{ left: `${timePercent * 100}%` }}
         />
+        <input
+          type="checkbox"
+          data-testid="current-clip-spectrogram"
+          title="Toggle spectrogram"
+          className="invisible"
+          checked={renderMode === RenderMode.Spectrogram}
+          onChange={(ev) => {
+            ev.preventDefault();
+            if (ev.target.checked) {
+              onSetRenderMode(RenderMode.Spectrogram);
+            } else {
+              onSetRenderMode(RenderMode.Waveform);
+            }
+          }}
+          id="toggle-spectrogram"
+        ></input>
+        <label
+          htmlFor="toggle-spectrogram"
+          className={cx(
+            "absolute right-0 bottom-0 p-2 m-2 ml-0 text-purple-900 cursor-pointer border-2 hover:border-purple-900 rounded-full hover:bg-purple-100 hover:text-purple-900",
+            renderMode === RenderMode.Spectrogram
+              ? "border-purple-900"
+              : "border-transparent"
+          )}
+        >
+          <Spectrogram />
+        </label>
       </div>
       <div className="m-2 w-full h-10 relative">
         {transcription?.map((segment, i) => (

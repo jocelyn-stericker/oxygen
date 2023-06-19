@@ -77,6 +77,37 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
             data-testid="current-clip-cursor"
             style="left: 100%;"
           />
+          <input
+            class="invisible"
+            data-testid="current-clip-spectrogram"
+            id="toggle-spectrogram"
+            title="Toggle spectrogram"
+            type="checkbox"
+          />
+          <label
+            class="absolute right-0 bottom-0 p-2 m-2 ml-0 text-purple-900 cursor-pointer border-2 hover:border-purple-900 rounded-full hover:bg-purple-100 hover:text-purple-900 border-transparent"
+            for="toggle-spectrogram"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </label>
         </div>
         <div
           class="m-2 w-full h-10 relative"
@@ -128,7 +159,7 @@ exports[`app [integration] can record and playback a clip: 1 recording 1`] = `
 - First value
 + Second value
 
-@@ -83,31 +83,37 @@
+@@ -114,31 +114,37 @@
           >
             <div
               class="flex-grow"
@@ -191,7 +222,7 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
             >
               <h2
                 class="p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center"
-@@ -46,77 +46,132 @@
+@@ -46,35 +46,81 @@
                   />
                 </svg>
                  Record New Clip
@@ -275,9 +306,11 @@ exports[`app [integration] can record and playback a clip: 2 done recording 1`] 
 -             style="left: 100%;"
 +             style="left: 0%;"
             />
-          </div>
-          <div
-            class="m-2 w-full h-10 relative"
+            <input
+              class="invisible"
+              data-testid="current-clip-spectrogram"
+              id="toggle-spectrogram"
+@@ -111,43 +157,52 @@
           />
           <div
             class="flex flex-row mb-4"

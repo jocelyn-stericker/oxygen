@@ -1,4 +1,4 @@
-use napi::bindgen_prelude::ToNapiValue;
+use napi::bindgen_prelude::{FromNapiValue, ToNapiValue};
 use napi::NapiValue;
 
 use std::sync::Arc;
@@ -32,6 +32,12 @@ enum Tab {
 }
 
 #[napi]
+pub enum RenderMode {
+    Waveform,
+    Spectrogram,
+}
+
+#[napi]
 pub struct UiState {
     tab: Tab,
     db: Db,
@@ -39,6 +45,7 @@ pub struct UiState {
     update_cb: ThreadsafeFunction<(), ErrorStrategy::Fatal>,
     host: AudioBackend,
     analyzer: Arc<Mutex<AsyncAnalyzer>>,
+    render_mode: RenderMode,
 }
 
 #[napi]
@@ -116,6 +123,8 @@ impl UiState {
             analyzer: Arc::new(Mutex::new(
                 AsyncAnalyzer::new().map_err(|e| Error::from_reason(format!("{:?}", e)))?,
             )),
+
+            render_mode: RenderMode::Waveform,
         })
     }
 
@@ -141,6 +150,19 @@ impl UiState {
             Tab::Record { .. } => None,
             Tab::Clip { audio_clip, .. } => Some(JsClipMeta::from(audio_clip)),
         }
+    }
+
+    #[napi(getter)]
+    pub fn get_render_mode(&self) -> RenderMode {
+        self.render_mode
+    }
+
+    #[napi]
+    pub fn set_render_mode(&mut self, render_mode: RenderMode) {
+        self.render_mode = render_mode;
+
+        self.update_cb
+            .call((), ThreadsafeFunctionCallMode::NonBlocking);
     }
 
     #[napi(getter)]
@@ -330,11 +352,7 @@ impl UiState {
     }
 
     #[napi]
-    pub fn draw_current_clip_waveform(
-        &mut self,
-        width: u32,
-        height: u32,
-    ) -> Result<Option<Buffer>> {
+    pub fn draw_current_clip(&mut self, width: u32, height: u32) -> Result<Option<Buffer>> {
         let width = width as usize;
         let height = height as usize;
 
@@ -352,26 +370,17 @@ impl UiState {
             return Ok(Some(vec![].into()));
         }
 
-        let columns = clip.render_waveform((0, clip.num_samples()), width);
-        let mut buffer = vec![0; width * height * 4];
-
-        for (x, column) in columns.iter().enumerate() {
-            let min_y = ((height as f32) * (column.min + 1.0) / 2.0)
-                .floor()
-                .max(0.0) as usize;
-            let max_y =
-                (((height as f32) * (column.max + 1.0) / 2.0).ceil() as usize).min(height - 1);
-
-            for y in min_y..=max_y {
-                // purple-900 :)
-                buffer[y * width * 4 + x * 4] = 88;
-                buffer[y * width * 4 + x * 4 + 1] = 28;
-                buffer[y * width * 4 + x * 4 + 2] = 135;
-                buffer[y * width * 4 + x * 4 + 3] = 255;
-            }
+        match self.render_mode {
+            RenderMode::Waveform => Ok(Some(
+                clip.render_waveform((0, clip.num_samples()), width, height)
+                    .into(),
+            )),
+            RenderMode::Spectrogram => Ok(Some(
+                clip.render_spectrogram((0, clip.num_samples()), width, height)
+                    .map_err(|err| Error::from_reason(format!("{:?}", err)))?
+                    .into(),
+            )),
         }
-
-        Ok(Some(buffer.into()))
     }
 
     #[napi(ts_return_type = "Promise<Segment[]>")]
@@ -538,4 +547,15 @@ where
     T: ToNapiValue,
 {
     unsafe { JsUnknown::from_raw(env.raw(), T::to_napi_value(env.raw(), value)?) }
+}
+
+#[napi]
+pub async fn read_file_async(path: String) -> Result<Buffer> {
+    match tokio::fs::read(path).await {
+        Ok(content) => Ok(content.into()),
+        Err(e) => Err(Error::new(
+            napi::bindgen_prelude::Status::GenericFailure,
+            format!("failed to read file, {}", e),
+        )),
+    }
 }

@@ -1,29 +1,36 @@
 import React from "react";
 import cx from "classnames";
+import { RenderMode } from "oxygen-core";
 
 import { Record, Stop } from "./icons";
 import AudioView from "./audio_view";
 
 export default function RecordTab({
-  drawCurrentClipWaveform,
+  drawCurrentClip,
   streaming,
   onRecord,
   onStop,
+  onSetRenderMode,
+  renderMode,
 }: {
-  drawCurrentClipWaveform: (width: number, height: number) => Buffer | null;
+  drawCurrentClip: (width: number, height: number) => Buffer | null;
   streaming: boolean;
   onRecord: () => void;
   onStop: () => void;
+  onSetRenderMode: (renderMode: RenderMode) => void;
+  renderMode: RenderMode;
 }) {
   return (
     <div className="flex flex-col flex-grow overflow-hidden">
       <AudioView
-        drawCurrentClipWaveform={drawCurrentClipWaveform}
+        drawCurrentClip={drawCurrentClip}
         timePercent={1}
         streaming={streaming}
         onSeek={() => {
           console.warn("TODO: implement seek in record tab?");
         }}
+        onSetRenderMode={onSetRenderMode}
+        renderMode={renderMode}
       />
       <div className="flex flex-row mb-4">
         <div className="flex-grow" />

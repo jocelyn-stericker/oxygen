@@ -1,4 +1,5 @@
 import React from "react";
+import { RenderMode } from "oxygen-core";
 import { render, fireEvent } from "@testing-library/react";
 
 import CurrentClip from "./current_clip";
@@ -11,7 +12,7 @@ describe("CurrentClip", () => {
     const handleDelete = jest.fn();
     const handleSeek = jest.fn();
     const handleTranscribe = null;
-    const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
+    const handleDrawCurrentClip = jest.fn((width, height) => {
       return Buffer.from(Array(width * height * 4).fill(0));
     });
 
@@ -30,13 +31,15 @@ describe("CurrentClip", () => {
         onRename={handleRename}
         onDelete={handleDelete}
         onSeek={handleSeek}
-        drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        drawCurrentClip={handleDrawCurrentClip}
         transcribe={handleTranscribe}
         duration={625}
+        renderMode={RenderMode.Waveform}
+        onSetRenderMode={() => {}}
       />
     );
 
-    expect(handleDrawCurrentClipWaveform).toHaveBeenCalledTimes(1);
+    expect(handleDrawCurrentClip).toHaveBeenCalledTimes(1);
 
     const stop = currentClip.getByTestId("current-clip-toggle-playback");
 
@@ -54,7 +57,7 @@ describe("CurrentClip", () => {
     const handleDelete = jest.fn();
     const handleSeek = jest.fn();
     const handleTranscribe = null;
-    const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
+    const handleDrawCurrentClip = jest.fn((width, height) => {
       return Buffer.from(Array(width * height * 4).fill(0));
     });
 
@@ -73,13 +76,15 @@ describe("CurrentClip", () => {
         onRename={handleRename}
         onDelete={handleDelete}
         onSeek={handleSeek}
-        drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        drawCurrentClip={handleDrawCurrentClip}
         transcribe={handleTranscribe}
         duration={625}
+        renderMode={RenderMode.Waveform}
+        onSetRenderMode={() => {}}
       />
     );
 
-    expect(handleDrawCurrentClipWaveform).toHaveBeenCalledTimes(1);
+    expect(handleDrawCurrentClip).toHaveBeenCalledTimes(1);
 
     const play = currentClip.getByTestId("current-clip-toggle-playback");
 
@@ -97,7 +102,7 @@ describe("CurrentClip", () => {
     const handleDelete = jest.fn();
     const handleSeek = jest.fn();
     const handleTranscribe = null;
-    const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
+    const handleDrawCurrentClip = jest.fn((width, height) => {
       return Buffer.from(Array(width * height * 4).fill(0));
     });
 
@@ -116,13 +121,15 @@ describe("CurrentClip", () => {
         onRename={handleRename}
         onDelete={handleDelete}
         onSeek={handleSeek}
-        drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        drawCurrentClip={handleDrawCurrentClip}
         transcribe={handleTranscribe}
         duration={625}
+        renderMode={RenderMode.Waveform}
+        onSetRenderMode={() => {}}
       />
     );
 
-    expect(handleDrawCurrentClipWaveform).toHaveBeenCalledTimes(1);
+    expect(handleDrawCurrentClip).toHaveBeenCalledTimes(1);
 
     const deleteBtn = currentClip.getByTestId("current-clip-delete");
 
@@ -137,7 +144,7 @@ describe("CurrentClip", () => {
     const handleDelete = jest.fn();
     const handleSeek = jest.fn();
     const handleTranscribe = null;
-    const handleDrawCurrentClipWaveform = jest.fn((width, height) => {
+    const handleDrawCurrentClip = jest.fn((width, height) => {
       return Buffer.from(Array(width * height * 4).fill(0));
     });
 
@@ -156,13 +163,15 @@ describe("CurrentClip", () => {
         onRename={handleRename}
         onDelete={handleDelete}
         onSeek={handleSeek}
-        drawCurrentClipWaveform={handleDrawCurrentClipWaveform}
+        drawCurrentClip={handleDrawCurrentClip}
         transcribe={handleTranscribe}
         duration={625}
+        renderMode={RenderMode.Waveform}
+        onSetRenderMode={() => {}}
       />
     );
 
-    expect(handleDrawCurrentClipWaveform).toHaveBeenCalledTimes(1);
+    expect(handleDrawCurrentClip).toHaveBeenCalledTimes(1);
 
     const clipName = currentClip.getByTestId("current-clip-name");
     fireEvent.focus(clipName);
