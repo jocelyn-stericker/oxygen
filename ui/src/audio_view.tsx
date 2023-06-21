@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import cx from "classnames";
-import { RenderMode, Segment } from "oxygen-core";
+import { RenderMode, JsSegment } from "oxygen-core";
 import { Spectrogram } from "./icons";
 
 export default function AudioView({
@@ -19,7 +19,7 @@ export default function AudioView({
   timePercent: number;
   duration?: number;
   clipId?: bigint | number;
-  transcribe?: () => Promise<Segment[]>;
+  transcribe?: () => Promise<JsSegment[]>;
   onSeek: (timePercent: number) => void;
   onSetRenderMode: (renderMode: RenderMode) => void;
   renderMode: RenderMode;

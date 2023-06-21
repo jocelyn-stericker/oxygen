@@ -1,22 +1,44 @@
-use napi::bindgen_prelude::{FromNapiValue, ToNapiValue};
-use napi::NapiValue;
+use napi::bindgen_prelude::{AsyncTask, FromNapiValue, ToNapiValue};
 
-use std::sync::Arc;
 use std::{ffi::OsStr, path::Path};
-use tokio::sync::Mutex;
 
 use chrono::prelude::*;
 use napi::{
     bindgen_prelude::Buffer,
     threadsafe_function::{ErrorStrategy, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-    Env, Error, JsDate, JsFunction, JsUnknown, Result,
+    Env, Error, JsDate, JsFunction, JsUnknown, Result, Task,
 };
 use napi_derive::napi;
-use oxygen_core::analyzer::AsyncAnalyzer;
 use oxygen_core::audio_clip::{
     AudioBackend, AudioClip, ClipHandle, PlayHandle, RecordHandle, StreamHandle,
 };
 use oxygen_core::db::{ClipMeta, Db};
+use oxygen_core::language_processor::{AsyncLanguageProcessor, Segment, TranscriptionHandle};
+
+pub struct TranscriptionTask(Option<TranscriptionHandle>);
+
+impl Task for TranscriptionTask {
+    type Output = Vec<Segment>;
+    type JsValue = Vec<JsSegment>;
+
+    fn compute(&mut self) -> Result<Self::Output> {
+        let handle = self
+            .0
+            .take()
+            .ok_or_else(|| Error::from_reason("no handle"))?;
+
+        handle
+            .resolve()
+            .map_err(|e| Error::from_reason(format!("{:?}", e)))
+    }
+
+    fn resolve(&mut self, _env: Env, output: Vec<Segment>) -> Result<Self::JsValue> {
+        Ok(output
+            .into_iter()
+            .map(|((t0, t1), segment)| JsSegment { t0, t1, segment })
+            .collect::<Vec<JsSegment>>())
+    }
+}
 
 mod js_logger;
 use js_logger::JsLogger;
@@ -44,12 +66,12 @@ pub struct UiState {
     deleted_clip: Option<AudioClip>,
     update_cb: ThreadsafeFunction<(), ErrorStrategy::Fatal>,
     host: AudioBackend,
-    analyzer: Arc<Mutex<AsyncAnalyzer>>,
+    language_processor: AsyncLanguageProcessor,
     render_mode: RenderMode,
 }
 
 #[napi]
-pub struct Segment {
+pub struct JsSegment {
     pub t0: f64,
     pub t1: f64,
     pub segment: String,
@@ -120,9 +142,8 @@ impl UiState {
             #[cfg(not(feature = "jack"))]
             host: AudioBackend::Default,
 
-            analyzer: Arc::new(Mutex::new(
-                AsyncAnalyzer::new().map_err(|e| Error::from_reason(format!("{:?}", e)))?,
-            )),
+            language_processor: AsyncLanguageProcessor::new()
+                .map_err(|e| Error::from_reason(format!("{:?}", e)))?,
 
             render_mode: RenderMode::Waveform,
         })
@@ -383,28 +404,27 @@ impl UiState {
         }
     }
 
-    #[napi(ts_return_type = "Promise<Segment[]>")]
-    pub fn transcribe(&self, env: Env) -> Result<JsUnknown> {
+    #[napi(ts_return_type = "Promise<JsSegment[]> | null")]
+    pub fn transcribe(&self) -> Result<Option<AsyncTask<TranscriptionTask>>> {
         let clip: &AudioClip = match &self.tab {
             Tab::Record {
                 handle: Some(_handle),
             } => {
-                return Ok(env.get_null()?.into_unknown());
+                return Ok(None);
             }
             Tab::Record { handle: None } => {
-                return Ok(env.get_null()?.into_unknown());
+                return Ok(None);
             }
             Tab::Clip { audio_clip, .. } => audio_clip as &AudioClip,
         };
 
-        let analyzer = self.analyzer.clone();
         let clip = clip.clone();
 
-        Ok(env
-            .execute_tokio_future(transcribe(analyzer, clip), |env, result| {
-                cast_js_value(env, result)
-            })?
-            .into_unknown())
+        Ok(Some(AsyncTask::new(TranscriptionTask(Some(
+            self.language_processor
+                .transcribe(clip)
+                .map_err(|err| Error::from_reason(format!("{:?}", err)))?,
+        )))))
     }
 
     #[napi(getter)]
@@ -525,37 +545,5 @@ impl UiState {
         } else {
             Err(Error::from_reason(format!("No clip with ID {}", id)))
         }
-    }
-}
-
-async fn transcribe(analyzer: Arc<Mutex<AsyncAnalyzer>>, clip: AudioClip) -> Result<Vec<Segment>> {
-    let analyzer = analyzer.lock().await;
-
-    analyzer
-        .transcribe(clip)
-        .await
-        .map_err(|err| Error::from_reason(format!("{:?}", err)))
-        .map(|some| {
-            some.into_iter()
-                .map(|((t0, t1), segment)| Segment { t0, t1, segment })
-                .collect::<Vec<Segment>>()
-        })
-}
-
-pub fn cast_js_value<T>(env: &mut Env, value: T) -> Result<JsUnknown>
-where
-    T: ToNapiValue,
-{
-    unsafe { JsUnknown::from_raw(env.raw(), T::to_napi_value(env.raw(), value)?) }
-}
-
-#[napi]
-pub async fn read_file_async(path: String) -> Result<Buffer> {
-    match tokio::fs::read(path).await {
-        Ok(content) => Ok(content.into()),
-        Err(e) => Err(Error::new(
-            napi::bindgen_prelude::Status::GenericFailure,
-            format!("failed to read file, {}", e),
-        )),
     }
 }
