@@ -1,4 +1,4 @@
-import { JsClipMeta, Segment, RenderMode } from "oxygen-core";
+import { JsClipMeta, JsSegment, RenderMode } from "oxygen-core";
 import cx from "classnames";
 import React, { useState, useEffect } from "react";
 import { Pause, Play, Delete } from "./icons";
@@ -22,7 +22,7 @@ export default function CurrentClip({
 }: {
   clip: JsClipMeta;
   drawCurrentClip: (width: number, height: number) => Buffer | null;
-  transcribe: () => Promise<Segment[]>;
+  transcribe: () => Promise<JsSegment[]>;
   time: number;
   timePercent: number;
   duration: number;

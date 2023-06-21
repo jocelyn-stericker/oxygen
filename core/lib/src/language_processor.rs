@@ -1,25 +1,21 @@
 use crate::audio_clip::AudioClip;
 use color_eyre::eyre::{eyre, Result};
-use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
-use futures::channel::oneshot::{channel as oneshot_channel, Sender as OneshotSender};
-use futures::SinkExt;
-use futures::StreamExt;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::{Arc, Mutex};
 use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperError};
 
 #[cfg(not(feature = "whisper_dummy"))]
 const GGML_BASE_EN_Q5: &[u8] = include_bytes!("./ggml-base.en-q5_0.bin");
 
-pub struct Analyzer {
+pub struct LanguageProcessor {
     whisper_context: Option<WhisperContext>,
 }
 
-type Segment = ((f64, f64), String);
+pub type Segment = ((f64, f64), String);
 
-impl Analyzer {
-    pub fn new() -> Result<Analyzer> {
-        Ok(Analyzer {
+impl LanguageProcessor {
+    pub fn new() -> Result<LanguageProcessor> {
+        Ok(LanguageProcessor {
             whisper_context: None,
         })
     }
@@ -111,42 +107,54 @@ impl Analyzer {
 }
 
 enum Event {
-    Transcribe(AudioClip, OneshotSender<Result<Vec<Segment>>>),
+    Transcribe(AudioClip, Sender<Result<Vec<Segment>>>),
 }
 
-async fn event_queue(mut analyzer: Analyzer, mut events: UnboundedReceiver<Event>) {
-    while let Some(event) = events.next().await {
+fn event_queue(mut analyzer: LanguageProcessor, events: Receiver<Event>) {
+    while let Ok(event) = events.recv() {
         let Event::Transcribe(clip, sender) = event;
         let result = analyzer.transcribe(&clip);
         sender.send(result).expect("failed to send result");
     }
 }
 
-pub struct AsyncAnalyzer {
-    events: Arc<Mutex<UnboundedSender<Event>>>,
+pub struct AsyncLanguageProcessor {
+    events: Arc<Mutex<Sender<Event>>>,
 }
 
-impl AsyncAnalyzer {
-    pub fn new() -> Result<AsyncAnalyzer> {
-        let (sender, receiver) = unbounded();
-        tokio::spawn(async move {
-            let analyzer = Analyzer::new().expect("failed to create analyzer");
-            event_queue(analyzer, receiver).await
+impl AsyncLanguageProcessor {
+    pub fn new() -> Result<AsyncLanguageProcessor> {
+        let (sender, receiver) = channel();
+        std::thread::spawn(move || {
+            let analyzer = LanguageProcessor::new().expect("failed to create analyzer");
+            event_queue(analyzer, receiver)
         });
 
-        Ok(AsyncAnalyzer {
+        Ok(AsyncLanguageProcessor {
             events: Arc::new(Mutex::new(sender)),
         })
     }
 
-    pub async fn transcribe(&self, clip: AudioClip) -> Result<Vec<Segment>> {
-        let (sender, receiver) = oneshot_channel();
+    pub fn transcribe(&self, clip: AudioClip) -> Result<TranscriptionHandle> {
+        let (sender, receiver) = channel();
 
-        let mut events = self.events.lock().await;
-        events.send(Event::Transcribe(clip, sender)).await?;
+        let events = self.events.lock().unwrap();
+        events
+            .send(Event::Transcribe(clip, sender))
+            .map_err(|e| eyre!("{:?}", e))?;
 
-        receiver
-            .await
-            .map_err(|_| eyre!("failed to receive result"))?
+        Ok(TranscriptionHandle { receiver })
+    }
+}
+
+type TranscriptionResult = Result<Vec<Segment>>;
+
+pub struct TranscriptionHandle {
+    receiver: Receiver<TranscriptionResult>,
+}
+
+impl TranscriptionHandle {
+    pub fn resolve(self) -> TranscriptionResult {
+        self.receiver.recv()?
     }
 }

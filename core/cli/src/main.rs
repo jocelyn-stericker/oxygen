@@ -1,9 +1,9 @@
 use chrono::prelude::*;
 use clap::{Parser, Subcommand};
 use color_eyre::eyre::{eyre, Result};
-use oxygen_core::analyzer::Analyzer;
 use oxygen_core::audio_clip::{AudioBackend, AudioClip};
 use oxygen_core::db::Db;
+use oxygen_core::language_processor::LanguageProcessor;
 use std::{ffi::OsStr, path::Path, sync::mpsc::channel};
 
 #[derive(Parser, Debug)]
@@ -142,9 +142,9 @@ fn main() -> Result<()> {
             }
         }
         Commands::Transcribe { name } => {
-            let mut analyzer = Analyzer::new()?;
+            let mut language_processor = LanguageProcessor::new()?;
             if let Some(clip) = db.load(&name)? {
-                for segment in &analyzer.transcribe(&clip)? {
+                for segment in &language_processor.transcribe(&clip)? {
                     println!(
                         "{:10.3} - {:10.3} {:30}",
                         (segment.0).0,

@@ -12,13 +12,11 @@ whisper_dummy = ["oxygen-core/whisper_dummy"]
 
 [dependencies]
 oxygen-core = { path = "../lib" }
-napi = {version = "2.12.6", features = ["napi8", "tokio_rt"]}
+napi = {version = "2.12.6", features = ["napi8"]}
 napi-derive = "2.12.5"
 chrono = "0.4.24"
 log = "0.4.17"
 lazy_static = "1.4.0"
-futures = "0.3"
-tokio = {version = "1.28", features=["fs"]}
 
 [build-dependencies]
 napi-build = "2.0.1"
