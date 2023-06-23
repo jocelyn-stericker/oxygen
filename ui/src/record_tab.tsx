@@ -12,6 +12,8 @@ export default function RecordTab({
   onStop,
   onSetRenderMode,
   renderMode,
+  timeStart,
+  timeEnd,
 }: {
   drawCurrentClip: (width: number, height: number) => Buffer | null;
   streaming: boolean;
@@ -19,18 +21,22 @@ export default function RecordTab({
   onStop: () => void;
   onSetRenderMode: (renderMode: RenderMode) => void;
   renderMode: RenderMode;
+  timeStart: number;
+  timeEnd: number;
 }) {
   return (
     <div className="flex flex-col flex-grow overflow-hidden">
       <AudioView
         drawCurrentClip={drawCurrentClip}
-        timePercent={1}
+        time={timeEnd}
         streaming={streaming}
         onSeek={() => {
           console.warn("TODO: implement seek in record tab?");
         }}
         onSetRenderMode={onSetRenderMode}
         renderMode={renderMode}
+        timeStart={timeStart}
+        timeEnd={timeEnd}
       />
       <div className="flex flex-row mb-4">
         <div className="flex-grow" />

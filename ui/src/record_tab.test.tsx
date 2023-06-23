@@ -20,6 +20,8 @@ describe("RecordTab", () => {
         onStop={handleStop}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
+        timeStart={0}
+        timeEnd={1}
       />
     );
 
@@ -46,6 +48,8 @@ describe("RecordTab", () => {
         onStop={handleStop}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
+        timeStart={0}
+        timeEnd={1}
       />
     );
 

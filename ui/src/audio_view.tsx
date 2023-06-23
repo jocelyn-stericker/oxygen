@@ -6,26 +6,29 @@ import { Spectrogram } from "./icons";
 export default function AudioView({
   drawCurrentClip,
   streaming,
-  timePercent,
-  duration,
+  time,
   clipId,
   transcribe,
   onSeek,
   onSetRenderMode,
   renderMode,
+  timeStart,
+  timeEnd,
 }: {
   drawCurrentClip: (width: number, height: number) => Buffer | null;
   streaming?: boolean;
-  timePercent: number;
-  duration?: number;
+  time: number;
   clipId?: bigint | number;
   transcribe?: () => Promise<JsSegment[]>;
-  onSeek: (timePercent: number) => void;
+  onSeek: (time: number) => void;
   onSetRenderMode: (renderMode: RenderMode) => void;
   renderMode: RenderMode;
+  timeStart: number;
+  timeEnd: number;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const canvasContainer = useRef<HTMLDivElement>(null);
+  const duration = timeEnd - timeStart;
 
   const redraw = useCallback(() => {
     const parent = canvas.current?.parentElement;
@@ -126,7 +129,9 @@ export default function AudioView({
         <div
           data-testid="current-clip-cursor"
           className="absolute w-[1px] bg-blue-400 h-full"
-          style={{ left: `${timePercent * 100}%` }}
+          style={{
+            left: `${((time - timeStart) / (timeEnd - timeStart)) * 100}%`,
+          }}
         />
         <input
           type="checkbox"
@@ -161,12 +166,15 @@ export default function AudioView({
           <svg
             key={i}
             width={`${
-              ((Math.min(duration, segment.t1) - segment.t0) / duration) * 100
+              ((Math.min(duration, segment.t1 - timeStart) -
+                (segment.t0 - timeStart)) /
+                duration) *
+              100
             }%`}
             height={30}
             style={{
               position: "absolute",
-              left: `${(segment.t0 / duration) * 100}%`,
+              left: `${((segment.t0 - timeStart) / duration) * 100}%`,
             }}
           >
             <g>

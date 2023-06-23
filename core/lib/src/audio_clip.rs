@@ -563,8 +563,10 @@ impl AudioClip {
     }
 
     pub fn render_waveform(&self, range: (usize, usize), width: usize, height: usize) -> Vec<u8> {
-        let min_t = range.0.min(self.samples.len()) as f32;
-        let max_t = (range.1.min(self.samples.len()) as f32).max(min_t);
+        assert!(range.0 <= range.1);
+
+        let min_t = range.0 as f32;
+        let max_t = range.1 as f32;
         let samples_per_pixel = (max_t - min_t) / (width as f32);
 
         let columns: Vec<DisplayColumn> = (0..width)
@@ -573,9 +575,11 @@ impl AudioClip {
                 let mut max = -1.0f32;
 
                 let start_sample = (min_t + samples_per_pixel * (pixel_i as f32)).floor() as usize;
-                let end_sample = ((min_t + samples_per_pixel * ((pixel_i + 1) as f32)).floor()
-                    as usize)
-                    .min(self.samples.len());
+                let end_sample =
+                    (min_t + samples_per_pixel * ((pixel_i + 1) as f32)).floor() as usize;
+
+                let start_sample = start_sample.clamp(0, self.samples.len());
+                let end_sample = end_sample.clamp(start_sample, self.samples.len());
 
                 for sample in &self.samples[start_sample..end_sample] {
                     min = min.min(*sample);

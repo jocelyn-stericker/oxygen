@@ -372,19 +372,26 @@ impl UiState {
         Ok(())
     }
 
+    fn clip(&self) -> Option<&dyn ClipHandle> {
+        match &self.tab {
+            Tab::Record {
+                handle: Some(handle),
+            } => Some(handle as &dyn ClipHandle),
+            Tab::Record { handle: None } => None,
+            Tab::Clip { audio_clip, .. } => Some(audio_clip),
+        }
+    }
+
     #[napi]
     pub fn draw_current_clip(&mut self, width: u32, height: u32) -> Result<Option<Buffer>> {
         let width = width as usize;
         let height = height as usize;
 
-        let clip = match &self.tab {
-            Tab::Record {
-                handle: Some(handle),
-            } => handle as &dyn ClipHandle,
-            Tab::Record { handle: None } => {
+        let clip = match self.clip() {
+            Some(clip) => clip,
+            None => {
                 return Ok(None);
             }
-            Tab::Clip { audio_clip, .. } => audio_clip,
         };
 
         if width == 0 || height == 0 {
@@ -393,15 +400,39 @@ impl UiState {
 
         match self.render_mode {
             RenderMode::Waveform => Ok(Some(
-                clip.render_waveform((0, clip.num_samples()), width, height)
+                clip.render_waveform((self.x1_samples(), self.x2_samples()), width, height)
                     .into(),
             )),
             RenderMode::Spectrogram => Ok(Some(
-                clip.render_spectrogram((0, clip.num_samples()), width, height)
+                clip.render_spectrogram((self.x1_samples(), self.x2_samples()), width, height)
                     .map_err(|err| Error::from_reason(format!("{:?}", err)))?
                     .into(),
             )),
         }
+    }
+
+    pub fn x1_samples(&self) -> usize {
+        0
+    }
+
+    pub fn x2_samples(&self) -> usize {
+        self.clip()
+            .map(|clip| clip.num_samples().max(clip.sample_rate() * 10))
+            .unwrap_or(0)
+    }
+
+    #[napi(getter)]
+    pub fn get_time_start(&self) -> f32 {
+        0.0
+    }
+
+    #[napi(getter)]
+    pub fn get_time_end(&self) -> f32 {
+        self.clip()
+            .map(|clip| {
+                (clip.num_samples().max(clip.sample_rate() * 10) as f32) / clip.sample_rate() as f32
+            })
+            .unwrap_or(0f32)
     }
 
     #[napi(ts_return_type = "Promise<JsSegment[]> | null")]
