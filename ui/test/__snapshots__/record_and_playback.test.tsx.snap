@@ -75,7 +75,6 @@ exports[`app [integration] can record and playback a clip: 1 initial 1`] = `
           <div
             class="absolute w-[1px] bg-blue-400 h-full"
             data-testid="current-clip-cursor"
-            style="left: 100%;"
           />
           <input
             class="invisible"
@@ -159,7 +158,19 @@ exports[`app [integration] can record and playback a clip: 1 recording 1`] = `
 - First value
 + Second value
 
-@@ -114,31 +114,37 @@
+@@ -70,10 +70,11 @@
+              width="736"
+            />
+            <div
+              class="absolute w-[1px] bg-blue-400 h-full"
+              data-testid="current-clip-cursor"
++             style="left: 100%;"
+            />
+            <input
+              class="invisible"
+              data-testid="current-clip-spectrogram"
+              id="toggle-spectrogram"
+@@ -113,31 +114,37 @@
           >
             <div
               class="flex-grow"

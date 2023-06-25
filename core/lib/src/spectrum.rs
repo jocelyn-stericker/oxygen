@@ -2,18 +2,24 @@ use crate::audio_clip::AudioClip;
 use color_eyre::eyre::Result;
 use realfft::RealFftPlanner;
 
-pub fn spectrogram(clip: &AudioClip) -> Result<Vec<Vec<f32>>> {
-    let sixteen_khz = clip.resample(12000);
+pub fn spectrogram(clip: &AudioClip, mut range: (usize, usize)) -> Result<Vec<Vec<f32>>> {
+    let resampled = clip.resample(12000);
     let n_fft = 2048;
     let offset = 200; // 16ms
 
-    let signal = sixteen_khz.samples;
+    let signal = resampled.samples;
     let mut fft = RealFftPlanner::<f32>::new();
     let r2c = fft.plan_fft_forward(n_fft);
     let mut spectrums = Vec::new();
-    let mut start_i = 0;
-    while start_i + n_fft < signal.len() {
-        let mut chunk: Vec<f32> = signal[start_i..start_i + n_fft].to_vec();
+    let mut start_i = (range.0 / n_fft) * n_fft;
+    let mut chunk = vec![0f32; n_fft];
+    range.0 = range.0 * (resampled.sample_rate as usize) / (clip.sample_rate as usize);
+    range.1 = range.1 * (resampled.sample_rate as usize) / (clip.sample_rate as usize);
+
+    while start_i + n_fft < range.1 {
+        for i in start_i..start_i + n_fft {
+            chunk[i - start_i] = *signal.get(i).unwrap_or(&0f32);
+        }
 
         // Hann window
         for (i, sample) in chunk.iter_mut().enumerate() {
@@ -35,14 +41,13 @@ pub fn spectrogram(clip: &AudioClip) -> Result<Vec<Vec<f32>>> {
 
 pub fn render_spectrogram(
     clip: &AudioClip,
-    _range: (usize, usize),
+    range: (usize, usize),
     width: usize,
     height: usize,
 ) -> Result<Vec<u8>> {
-    let spectrums = spectrogram(clip)?;
+    let spectrums = spectrogram(clip, range)?;
 
     let pixels_per_spectrum = (width as f32) / (spectrums.len() as f32);
-
     let mut buffer = vec![0; width * height * 4];
 
     let min_freq = 1f32;

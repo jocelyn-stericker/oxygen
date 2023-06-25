@@ -9,8 +9,6 @@ export default function CurrentClip({
   drawCurrentClip,
   transcribe,
   time,
-  timePercent,
-  duration,
   streaming,
   onPlay,
   onStop,
@@ -19,21 +17,23 @@ export default function CurrentClip({
   onDelete,
   onSetRenderMode,
   renderMode,
+  timeStart,
+  timeEnd,
 }: {
   clip: JsClipMeta;
   drawCurrentClip: (width: number, height: number) => Buffer | null;
   transcribe: () => Promise<JsSegment[]>;
   time: number;
-  timePercent: number;
-  duration: number;
   streaming: boolean;
   onPlay: (cb: () => void) => void;
   onStop: () => void;
-  onSeek: (timePercent: number) => void;
+  onSeek: (time: number) => void;
   onRename: (name: string) => void;
   onDelete: () => void;
   onSetRenderMode: (renderMode: RenderMode) => void;
   renderMode: RenderMode;
+  timeStart: number;
+  timeEnd: number;
 }) {
   const [temporaryName, setTemporaryName] = useState(clip.name);
   useEffect(() => {
@@ -72,13 +72,14 @@ export default function CurrentClip({
       </div>
       <AudioView
         drawCurrentClip={drawCurrentClip}
-        timePercent={timePercent}
-        duration={duration}
+        time={time}
         clipId={clip.id}
         transcribe={transcribe}
         onSeek={onSeek}
         onSetRenderMode={onSetRenderMode}
         renderMode={renderMode}
+        timeStart={timeStart}
+        timeEnd={timeEnd}
       />
       <div className="flex flex-row mb-4">
         <div

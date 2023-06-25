@@ -179,8 +179,6 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
           drawCurrentClip={drawCurrentClip}
           transcribe={transcribe}
           time={uiState.time}
-          timePercent={uiState.timePercent}
-          duration={uiState.duration}
           streaming={uiState.streaming}
           renderMode={uiState.renderMode}
           onPlay={handlePlay}
@@ -189,6 +187,8 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
           onRename={handleRename}
           onDelete={handleDelete}
           onSetRenderMode={handleSetRenderMode}
+          timeStart={Number(uiState.timeStart)}
+          timeEnd={Number(uiState.timeEnd)}
         />
       )}
       {uiState.recordTabSelected && (
@@ -199,6 +199,8 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
           onRecord={handleRecord}
           onStop={handleStop}
           onSetRenderMode={handleSetRenderMode}
+          timeStart={Number(uiState.timeStart)}
+          timeEnd={Number(uiState.timeEnd)}
         />
       )}
       {dragOver && (

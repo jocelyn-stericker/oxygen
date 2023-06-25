@@ -24,7 +24,6 @@ describe("CurrentClip", () => {
           name: "Current clip",
         }}
         time={125}
-        timePercent={0.2}
         streaming={true}
         onPlay={handlePlay}
         onStop={handleStop}
@@ -33,7 +32,8 @@ describe("CurrentClip", () => {
         onSeek={handleSeek}
         drawCurrentClip={handleDrawCurrentClip}
         transcribe={handleTranscribe}
-        duration={625}
+        timeStart={0}
+        timeEnd={625}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
       />
@@ -69,7 +69,6 @@ describe("CurrentClip", () => {
           name: "Current clip",
         }}
         time={125}
-        timePercent={0.2}
         streaming={false}
         onPlay={handlePlay}
         onStop={handleStop}
@@ -78,7 +77,8 @@ describe("CurrentClip", () => {
         onSeek={handleSeek}
         drawCurrentClip={handleDrawCurrentClip}
         transcribe={handleTranscribe}
-        duration={625}
+        timeStart={0}
+        timeEnd={625}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
       />
@@ -114,7 +114,6 @@ describe("CurrentClip", () => {
           name: "Current clip",
         }}
         time={125}
-        timePercent={0.2}
         streaming={false}
         onPlay={handlePlay}
         onStop={handleStop}
@@ -123,7 +122,8 @@ describe("CurrentClip", () => {
         onSeek={handleSeek}
         drawCurrentClip={handleDrawCurrentClip}
         transcribe={handleTranscribe}
-        duration={625}
+        timeStart={0}
+        timeEnd={625}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
       />
@@ -156,7 +156,6 @@ describe("CurrentClip", () => {
           name: "Current clip",
         }}
         time={125}
-        timePercent={0.2}
         streaming={false}
         onPlay={handlePlay}
         onStop={handleStop}
@@ -165,7 +164,8 @@ describe("CurrentClip", () => {
         onSeek={handleSeek}
         drawCurrentClip={handleDrawCurrentClip}
         transcribe={handleTranscribe}
-        duration={625}
+        timeStart={0}
+        timeEnd={625}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
       />
