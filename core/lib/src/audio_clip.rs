@@ -562,8 +562,13 @@ impl AudioClip {
         Ok(())
     }
 
-    pub fn render_waveform(&self, range: (usize, usize), width: usize, height: usize) -> Vec<u8> {
-        assert!(range.0 <= range.1);
+    pub fn render_waveform(
+        &self,
+        mut range: (usize, usize),
+        width: usize,
+        height: usize,
+    ) -> Vec<u8> {
+        range.1 = range.1.clamp(range.0, usize::MAX);
 
         let min_t = range.0 as f32;
         let max_t = range.1 as f32;
