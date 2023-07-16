@@ -2,7 +2,7 @@ import { RenderMode, UiState } from "oxygen-core";
 import React, { useState, useCallback, useRef, useReducer } from "react";
 import cx from "classnames";
 
-import Toaster, { ToasterInterface } from "./toaster";
+import Toaster, { ToasterInterface } from "./Toaster";
 import ClipList from "./ClipList";
 import RecordTab from "./RecordTab";
 import CurrentClip from "./CurrentClip";

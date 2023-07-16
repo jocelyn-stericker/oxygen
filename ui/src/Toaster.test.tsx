@@ -1,7 +1,7 @@
 import React from "react";
 import { render, act, fireEvent, within } from "@testing-library/react";
 
-import Toaster, { ToasterInterface } from "./toaster";
+import Toaster, { ToasterInterface } from "./Toaster";
 
 describe("Toaster", () => {
   it("renders error and info toasts, which can be dismissed", () => {
