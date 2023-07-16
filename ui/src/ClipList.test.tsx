@@ -13,10 +13,10 @@ describe("ClipList", () => {
         onSetCurrentTabRecord={() => {}}
         onSetCurrentClipId={() => {}}
         onExport={jest.fn()}
-      />
+      />,
     );
     expect(clipList.getByTestId("cliplist-placeholder").textContent).toEqual(
-      "Your clips will appear here."
+      "Your clips will appear here.",
     );
   });
 
@@ -38,7 +38,7 @@ describe("ClipList", () => {
         onSetCurrentTabRecord={() => {}}
         onSetCurrentClipId={handleSetCurrentClipId}
         onExport={jest.fn()}
-      />
+      />,
     );
     expect(clipList.queryByTestId("cliplist-placeholder")).toEqual(null);
 
@@ -49,14 +49,14 @@ describe("ClipList", () => {
 
       const clip1 = clipList.getByTestId("clip-1");
       expect(clip1.textContent).toEqual(
-        "Clip 1Saturday, May 14, 2022 at 12:00:00 AM"
+        "Clip 1Saturday, May 14, 2022 at 12:00:00 AM",
       );
       expect(clip1.classList).not.toContain("bg-purple-900"); // Not selected.
       expect(clip1.getAttribute("aria-selected")).toEqual("false");
 
       const clip2 = clipList.getByTestId("clip-2");
       expect(clip2.textContent).toEqual(
-        "Clip 2Friday, May 20, 2022 at 7:34:29 PM"
+        "Clip 2Friday, May 20, 2022 at 7:34:29 PM",
       );
       expect(clip2.classList).not.toContain("bg-purple-900"); // Not selected.
       expect(clip2.getAttribute("aria-selected")).toEqual("false");
@@ -83,7 +83,7 @@ describe("ClipList", () => {
         onSetCurrentTabRecord={() => {}}
         onSetCurrentClipId={handleSetCurrentClipId}
         onExport={jest.fn()}
-      />
+      />,
     );
 
     {
@@ -119,7 +119,7 @@ describe("ClipList", () => {
         onSetCurrentTabRecord={handleSetCurrentTabRecord}
         onSetCurrentClipId={() => {}}
         onExport={jest.fn()}
-      />
+      />,
     );
 
     const record = clipList.getByTestId("record-item");
@@ -150,12 +150,12 @@ describe("ClipList", () => {
         onSetCurrentTabRecord={handleSetCurrentTabRecord}
         onSetCurrentClipId={handleSetCurrentClipId}
         onExport={jest.fn()}
-      />
+      />,
     );
 
     expect(clipList.getAllByTestId("record-item")).toHaveLength(1);
     expect(
-      clipList.getAllByTestId(/clip-\d+/).map((c) => c.textContent)
+      clipList.getAllByTestId(/clip-\d+/).map((c) => c.textContent),
     ).toEqual([
       "Practice 1Saturday, May 14, 2022 at 12:00:00 AM",
       "Practice 2Sunday, May 15, 2022 at 12:00:00 AM",
@@ -166,7 +166,7 @@ describe("ClipList", () => {
     fireEvent.change(searchClips, { target: { value: "Practice" } });
 
     expect(
-      clipList.getAllByTestId(/clip-\d+/).map((c) => c.textContent)
+      clipList.getAllByTestId(/clip-\d+/).map((c) => c.textContent),
     ).toEqual([
       "Practice 1Saturday, May 14, 2022 at 12:00:00 AM",
       "Practice 2Sunday, May 15, 2022 at 12:00:00 AM",

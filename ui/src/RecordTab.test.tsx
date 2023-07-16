@@ -22,7 +22,7 @@ describe("RecordTab", () => {
         onSetRenderMode={() => {}}
         timeStart={0}
         timeEnd={1}
-      />
+      />,
     );
 
     const toggle = recordTab.getByTestId("toggle-record");
@@ -50,7 +50,7 @@ describe("RecordTab", () => {
         onSetRenderMode={() => {}}
         timeStart={0}
         timeEnd={1}
-      />
+      />,
     );
 
     const toggle = recordTab.getByTestId("toggle-record");
