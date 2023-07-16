@@ -4,7 +4,7 @@ import diff from "snapshot-diff";
 import postcss from "postcss";
 import tailwind from "tailwindcss";
 
-import UiMain from "../src/ui_main";
+import UiMain from "../src/UiMain";
 
 beforeAll(async () => {
   jest

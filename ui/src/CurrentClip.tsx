@@ -2,7 +2,7 @@ import { JsClipMeta, JsSegment, RenderMode } from "oxygen-core";
 import cx from "classnames";
 import React, { useState, useEffect } from "react";
 import { Pause, Play, Delete } from "./icons";
-import AudioView from "./audio_view";
+import AudioView from "./AudioView";
 
 export default function CurrentClip({
   clip,

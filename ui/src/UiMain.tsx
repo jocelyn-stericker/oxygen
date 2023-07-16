@@ -3,9 +3,9 @@ import React, { useState, useCallback, useRef, useReducer } from "react";
 import cx from "classnames";
 
 import Toaster, { ToasterInterface } from "./toaster";
-import ClipList from "./clip_list";
-import RecordTab from "./record_tab";
-import CurrentClip from "./current_clip";
+import ClipList from "./ClipList";
+import RecordTab from "./RecordTab";
+import CurrentClip from "./CurrentClip";
 
 function nativeLog(level: string, log: string) {
   if (level === "error") {

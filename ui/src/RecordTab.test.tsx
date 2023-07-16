@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react";
 import { RenderMode } from "oxygen-core";
 
-import RecordTab from "./record_tab";
+import RecordTab from "./RecordTab";
 
 describe("RecordTab", () => {
   it("renders playing state and can be completed", () => {
