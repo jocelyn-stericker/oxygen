@@ -36,7 +36,7 @@ describe("CurrentClip", () => {
         timeEnd={625}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
-      />
+      />,
     );
 
     expect(handleDrawCurrentClip).toHaveBeenCalledTimes(1);
@@ -47,7 +47,7 @@ describe("CurrentClip", () => {
     fireEvent.click(stop);
     expect(handleStop).toHaveBeenCalledTimes(1);
     expect(currentClip.getByTestId("current-clip-time").textContent).toEqual(
-      "125.00"
+      "125.00",
     );
   });
   it("renders stopped state and can be played", () => {
@@ -81,7 +81,7 @@ describe("CurrentClip", () => {
         timeEnd={625}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
-      />
+      />,
     );
 
     expect(handleDrawCurrentClip).toHaveBeenCalledTimes(1);
@@ -92,7 +92,7 @@ describe("CurrentClip", () => {
     fireEvent.click(play);
     expect(handlePlay).toHaveBeenCalledTimes(1);
     expect(currentClip.getByTestId("current-clip-time").textContent).toEqual(
-      "125.00"
+      "125.00",
     );
   });
   it("can be deleted", () => {
@@ -126,7 +126,7 @@ describe("CurrentClip", () => {
         timeEnd={625}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
-      />
+      />,
     );
 
     expect(handleDrawCurrentClip).toHaveBeenCalledTimes(1);
@@ -168,7 +168,7 @@ describe("CurrentClip", () => {
         timeEnd={625}
         renderMode={RenderMode.Waveform}
         onSetRenderMode={() => {}}
-      />
+      />,
     );
 
     expect(handleDrawCurrentClip).toHaveBeenCalledTimes(1);

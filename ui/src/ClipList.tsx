@@ -29,7 +29,7 @@ export default function ClipList({
 
   if (recordTabSelected && currentClipId != null) {
     throw new Error(
-      "Invalid state: the record tab is selected and there is a clip ID"
+      "Invalid state: the record tab is selected and there is a clip ID",
     );
   }
 
@@ -59,7 +59,7 @@ export default function ClipList({
             className={cx(
               "hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden",
               recordTabSelected &&
-                "bg-purple-900 text-white hover:bg-purple-900 cursor-default"
+                "bg-purple-900 text-white hover:bg-purple-900 cursor-default",
             )}
             onClick={(ev) => {
               ev.preventDefault();
@@ -68,7 +68,7 @@ export default function ClipList({
           >
             <h2
               className={cx(
-                "p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center"
+                "p-4 text-m font-bold overflow-ellipsis overflow-hidden flex flex-row justify-center",
               )}
             >
               <Record /> Record New Clip
@@ -86,7 +86,7 @@ export default function ClipList({
               className={cx(
                 "p-2 hover:bg-purple-100 cursor-pointer text-purple-900 overflow-hidden",
                 currentClipId === clip.id &&
-                  "bg-purple-900 text-white hover:bg-purple-900 cursor-default"
+                  "bg-purple-900 text-white hover:bg-purple-900 cursor-default",
               )}
               onClick={(ev) => {
                 ev.preventDefault();

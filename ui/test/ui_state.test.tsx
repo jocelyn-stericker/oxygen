@@ -5,12 +5,12 @@ describe("UiState", () => {
     new UiState(
       () => {},
       () => {},
-      true
+      true,
     );
     new UiState(
       () => {},
       () => {},
-      true
+      true,
     );
   });
 });

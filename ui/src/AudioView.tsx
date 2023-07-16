@@ -52,7 +52,7 @@ export default function AudioView({
       const image = new ImageData(
         array,
         canvas.current.width,
-        canvas.current.height
+        canvas.current.height,
       );
       const context = canvas.current.getContext("2d");
       context.putImageData(image, 0, 0);
@@ -124,7 +124,7 @@ export default function AudioView({
           onClick={(ev) => {
             const rect = ev.currentTarget.getBoundingClientRect();
             onSeek(
-              ((ev.clientX - rect.left) / rect.width) * (timeEnd - timeStart)
+              ((ev.clientX - rect.left) / rect.width) * (timeEnd - timeStart),
             );
           }}
         />
@@ -157,7 +157,7 @@ export default function AudioView({
             "absolute right-0 bottom-0 p-2 m-2 ml-0 text-purple-900 cursor-pointer border-2 hover:border-purple-900 rounded-full hover:bg-purple-100 hover:text-purple-900",
             renderMode === RenderMode.Spectrogram
               ? "border-purple-900"
-              : "border-transparent"
+              : "border-transparent",
           )}
         >
           <Spectrogram />

@@ -62,7 +62,7 @@ describe("Toaster", () => {
     expect(
       toaster
         .getAllByTestId(/^toast-\d+$/)
-        .map((toast) => `${toast.className}: ${toast.textContent}`)
+        .map((toast) => `${toast.className}: ${toast.textContent}`),
     ).toEqual([
       "left-1/2 -translate-x-1/2 p-2 first-of-type:border-b-0 border-2 last-of-type:rounded-t-md flex text-blue-900 bg-blue-100 border-blue-300: This is an info toast",
     ]);
@@ -74,7 +74,7 @@ describe("Toaster", () => {
     expect(
       toaster
         .getAllByTestId(/^toast-\d+$/)
-        .map((toast) => `${toast.className}: ${toast.textContent}`)
+        .map((toast) => `${toast.className}: ${toast.textContent}`),
     ).toEqual([
       "left-1/2 -translate-x-1/2 p-2 first-of-type:border-b-0 border-2 last-of-type:rounded-t-md flex text-blue-900 bg-blue-100 border-blue-300: This is an info toast",
       "left-1/2 -translate-x-1/2 p-2 first-of-type:border-b-0 border-2 last-of-type:rounded-t-md flex text-red-900 bg-red-100 border-red-300: This is an error toast",
@@ -83,7 +83,7 @@ describe("Toaster", () => {
     const dismissInfo = within(
       toaster
         .getAllByTestId(/^toast-label-\d+$/)
-        .find((t) => t.textContent === "This is an info toast").parentElement
+        .find((t) => t.textContent === "This is an info toast").parentElement,
     ).getByRole("button", { name: "Dismiss" });
 
     fireEvent.click(dismissInfo);
@@ -91,7 +91,7 @@ describe("Toaster", () => {
     expect(
       toaster
         .getAllByTestId(/^toast-\d+$/)
-        .map((toast) => `${toast.className}: ${toast.textContent}`)
+        .map((toast) => `${toast.className}: ${toast.textContent}`),
     ).toEqual([
       "left-1/2 -translate-x-1/2 p-2 first-of-type:border-b-0 border-2 last-of-type:rounded-t-md flex text-red-900 bg-red-100 border-red-300: This is an error toast",
     ]);
@@ -99,7 +99,7 @@ describe("Toaster", () => {
     const dismissError = within(
       toaster
         .getAllByTestId(/^toast-label-\d+$/)
-        .find((t) => t.textContent === "This is an error toast").parentElement
+        .find((t) => t.textContent === "This is an error toast").parentElement,
     ).getByRole("button", { name: "Dismiss" });
 
     fireEvent.click(dismissError);
@@ -107,7 +107,7 @@ describe("Toaster", () => {
     expect(
       toaster
         .queryAllByTestId(/^toast-\d+$/)
-        .map((toast) => `${toast.className}: ${toast.textContent}`)
+        .map((toast) => `${toast.className}: ${toast.textContent}`),
     ).toEqual([]);
   });
 
@@ -122,7 +122,7 @@ describe("Toaster", () => {
     });
 
     expect(
-      toaster.getAllByTestId(/^toast-\d+$/).map((toast) => toast.textContent)
+      toaster.getAllByTestId(/^toast-\d+$/).map((toast) => toast.textContent),
     ).toEqual(["info toast 1", "error toast 2", "info toast 3"]);
 
     act(() => {
@@ -132,7 +132,7 @@ describe("Toaster", () => {
     });
 
     expect(
-      toaster.getAllByTestId(/^toast-\d+$/).map((toast) => toast.textContent)
+      toaster.getAllByTestId(/^toast-\d+$/).map((toast) => toast.textContent),
     ).toEqual([
       "info toast 3",
       "replacement error toast 1",
@@ -202,7 +202,7 @@ describe("Toaster", () => {
     const action = within(
       toaster
         .getAllByTestId(/^toast-label-\d+$/)
-        .find((t) => t.textContent === "This is an info toast").parentElement
+        .find((t) => t.textContent === "This is an info toast").parentElement,
     ).getByRole("button", { name: "Foobarify" });
 
     fireEvent.click(action);
@@ -212,7 +212,7 @@ describe("Toaster", () => {
     expect(
       toaster
         .queryAllByTestId(/^toast-\d+$/)
-        .map((toast) => `${toast.className}: ${toast.textContent}`)
+        .map((toast) => `${toast.className}: ${toast.textContent}`),
     ).toEqual([]);
   });
 });

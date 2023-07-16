@@ -36,6 +36,16 @@ ipcMain.on("ondragstart", (event, filePath) => {
   });
 });
 
+app.on("web-contents-created", (_event, contents) => {
+  contents.on("will-navigate", (event) => {
+    // https://www.electronjs.org/docs/latest/tutorial/security#13-disable-or-limit-navigation
+    event.preventDefault();
+  });
+
+  // https://www.electronjs.org/docs/latest/tutorial/security#14-disable-or-limit-creation-of-new-windows
+  contents.setWindowOpenHandler(() => ({ action: "deny" }));
+});
+
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });

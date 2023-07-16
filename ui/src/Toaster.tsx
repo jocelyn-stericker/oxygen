@@ -55,12 +55,12 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
       text: string,
       toastType: ToastType,
       action?: ToastAction,
-      uniqueKey?: string
+      uniqueKey?: string,
     ) => {
       const id = nextId.current;
       setToasts((toasts) => [
         ...toasts.filter(
-          (toast) => !uniqueKey || toast.uniqueKey !== uniqueKey
+          (toast) => !uniqueKey || toast.uniqueKey !== uniqueKey,
         ),
         { text, toastType, id, action, uniqueKey },
       ]);
@@ -70,7 +70,7 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
         setToasts((toasts) => toasts.filter((toast) => toast.id !== id));
       }, 4000);
     },
-    []
+    [],
   );
 
   useImperativeHandle(
@@ -83,7 +83,7 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
         addToast(msg, "info", action, uniqueKey);
       },
     }),
-    [addToast]
+    [addToast],
   );
 
   return (
@@ -95,7 +95,7 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
             toast.toastType === "error" &&
               "text-red-900 bg-red-100 border-red-300",
             toast.toastType === "info" &&
-              "text-blue-900 bg-blue-100 border-blue-300"
+              "text-blue-900 bg-blue-100 border-blue-300",
           )}
           data-testid={`toast-${toast.id}`}
           key={toast.id}
@@ -111,7 +111,7 @@ const Toaster = forwardRef<ToasterInterface>(function Toaster(_props, ref) {
                 ev.preventDefault();
                 const id = toast.id;
                 setToasts((toasts) =>
-                  toasts.filter((toast) => toast.id !== id)
+                  toasts.filter((toast) => toast.id !== id),
                 );
                 toast.action.cb();
               }}

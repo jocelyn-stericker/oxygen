@@ -27,13 +27,13 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
   // Hack to force a re-render when the state changes.
   const [, forceUpdate] = useReducer(() => ({}), []);
   const [uiState] = useState(
-    () => new UiState(forceUpdate, nativeLog, inMemory)
+    () => new UiState(forceUpdate, nativeLog, inMemory),
   );
   const toaster = useRef<ToasterInterface>(null);
 
   const drawCurrentClip = useCallback(
     (width: number, height: number) => uiState.drawCurrentClip(width, height),
-    [uiState]
+    [uiState],
   );
 
   const transcribe = useCallback(() => uiState.transcribe(), [uiState]);
@@ -42,7 +42,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
     (cb: () => void) => {
       uiState.play(cb);
     },
-    [uiState]
+    [uiState],
   );
 
   const handleStop = useCallback(() => uiState.stop(), [uiState]);
@@ -51,7 +51,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
     (time: number) => {
       uiState.seek(time);
     },
-    [uiState]
+    [uiState],
   );
 
   const handleRename = useCallback(
@@ -69,13 +69,13 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
             toaster.current.error("This name is taken by another clip.");
           } else {
             toaster.current.error(
-              "Something went wrong when renaming this clip."
+              "Something went wrong when renaming this clip.",
             );
           }
         }
       }
     },
-    [uiState]
+    [uiState],
   );
 
   const handleDelete = useCallback(() => {
@@ -89,7 +89,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
           uiState.undeleteCurrentClip();
         },
       },
-      "undoDeleteCurrentClip"
+      "undoDeleteCurrentClip",
     );
   }, [uiState]);
 
@@ -97,7 +97,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
     (renderMode: RenderMode) => {
       uiState.setRenderMode(renderMode);
     },
-    [uiState]
+    [uiState],
   );
 
   const handleRecord = useCallback(() => {
@@ -112,14 +112,14 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
     (clipId: number) => {
       uiState.setCurrentClipId(clipId);
     },
-    [uiState]
+    [uiState],
   );
 
   const handleExport = useCallback(
     (clipId: number) => {
       return uiState.export(clipId);
     },
-    [uiState]
+    [uiState],
   );
 
   const [dragOver, setDragOver] = useState<boolean | "invalid">(false);
@@ -131,7 +131,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
         ev.preventDefault();
         if (
           [...ev.dataTransfer.items].filter(
-            (item) => item.type === "audio/wav" || item.type === "audio/mpeg"
+            (item) => item.type === "audio/wav" || item.type === "audio/mpeg",
           ).length > 0
         ) {
           setDragOver(true);
@@ -151,14 +151,14 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
               toaster.current.info(`Imported ${item.getAsFile().name}.`);
             } catch (err) {
               toaster.current.error(
-                `Could not import ${item.getAsFile().name}: ${err.toString()}`
+                `Could not import ${item.getAsFile().name}: ${err.toString()}`,
               );
             }
           } else {
             toaster.current.error(
               `Count not import ${
                 item.getAsFile().name
-              } because the file type is unsupported.`
+              } because the file type is unsupported.`,
             );
           }
         }
@@ -209,7 +209,7 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
             className={cx(
               "relative h-full w-full border-4 text-2xl flex items-center font-bold justify-center",
               dragOver === "invalid" && "border-red-600/75  bg-red-200/75",
-              dragOver === true && "border-blue-600/75  bg-blue-200/75"
+              dragOver === true && "border-blue-600/75  bg-blue-200/75",
             )}
           >
             {dragOver === true && <div>Drop audio clips here.</div>}

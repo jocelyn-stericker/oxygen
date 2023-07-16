@@ -20,7 +20,7 @@ beforeAll(async () => {
       " @tailwind base; @tailwind components; @tailwind utilities;",
       {
         from: "../src/index.css",
-      }
+      },
     )
   ).css;
   document.head.appendChild(styleSheet);
@@ -31,7 +31,7 @@ describe("app [integration]", () => {
     const app = render(
       <div style={{ width: 1024, height: 768 }}>
         <UiMain inMemory={true} />
-      </div>
+      </div>,
     );
     const startRecording = app.getByRole("button", {
       name: "Start Recording",
@@ -65,7 +65,7 @@ describe("app [integration]", () => {
     fireEvent.blur(clipName);
 
     const dismissRename = within(
-      app.getByText(/Renamed.*to.*/).parentElement
+      app.getByText(/Renamed.*to.*/).parentElement,
     ).getByRole("button", { name: "Dismiss" });
     fireEvent.click(dismissRename);
 
@@ -73,7 +73,7 @@ describe("app [integration]", () => {
 
     nextFragment = app.asFragment();
     expect(diff(prevFragment, nextFragment)).toMatchSnapshot(
-      "2 done recording"
+      "2 done recording",
     );
     prevFragment = nextFragment;
 
@@ -85,13 +85,13 @@ describe("app [integration]", () => {
     fireEvent.click(pause);
 
     fireEvent.click(
-      app.getByRole("tab", { name: "Record New Clip", selected: false })
+      app.getByRole("tab", { name: "Record New Clip", selected: false }),
     );
     await app.findByRole("tab", { name: "Record New Clip", selected: true });
 
     nextFragment = app.asFragment();
     expect(diff(initialFragment, nextFragment)).toMatchSnapshot(
-      "3 delta from initial"
+      "3 delta from initial",
     );
   });
 });
