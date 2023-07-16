@@ -48,8 +48,8 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
   const handleStop = useCallback(() => uiState.stop(), [uiState]);
 
   const handleSeek = useCallback(
-    (timePercent: number) => {
-      uiState.seek(timePercent);
+    (time: number) => {
+      uiState.seek(time);
     },
     [uiState]
   );

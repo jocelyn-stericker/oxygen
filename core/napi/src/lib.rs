@@ -47,10 +47,20 @@ enum Tab {
     Record {
         handle: Option<RecordHandle>,
     },
-    Clip {
+    Play {
         audio_clip: AudioClip,
-        handle: Option<PlayHandle>,
+        handle: PlayHandle,
     },
+    Pause {
+        audio_clip: AudioClip,
+        time: f64,
+    },
+}
+
+impl Default for Tab {
+    fn default() -> Self {
+        Tab::Record { handle: None }
+    }
 }
 
 #[napi]
@@ -161,7 +171,9 @@ impl UiState {
     pub fn get_current_clip_id(&self) -> Option<usize> {
         match &self.tab {
             Tab::Record { .. } => None,
-            Tab::Clip { audio_clip, .. } => Some(audio_clip.id.expect("Saved clips must have IDs")),
+            Tab::Play { audio_clip, .. } | Tab::Pause { audio_clip, .. } => {
+                Some(audio_clip.id.expect("Saved clips must have IDs"))
+            }
         }
     }
 
@@ -169,7 +181,9 @@ impl UiState {
     pub fn get_current_clip(&self) -> Option<JsClipMeta> {
         match &self.tab {
             Tab::Record { .. } => None,
-            Tab::Clip { audio_clip, .. } => Some(JsClipMeta::from(audio_clip)),
+            Tab::Play { audio_clip, .. } | Tab::Pause { audio_clip, .. } => {
+                Some(JsClipMeta::from(audio_clip))
+            }
         }
     }
 
@@ -198,9 +212,9 @@ impl UiState {
             .load_by_id(id as usize)
             .map_err(|e| Error::from_reason(format!("{:?}", e)))?
         {
-            self.tab = Tab::Clip {
+            self.tab = Tab::Pause {
                 audio_clip,
-                handle: None,
+                time: 0.0,
             };
             self.update_cb
                 .call((), ThreadsafeFunctionCallMode::NonBlocking);
@@ -217,27 +231,35 @@ impl UiState {
 
     #[napi]
     pub fn play(&mut self, on_done: JsFunction) -> Result<()> {
-        if let Tab::Clip { audio_clip, handle } = &mut self.tab {
-            let new_handle = audio_clip
-                .play(self.host)
-                .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
+        self.tab = match std::mem::take(&mut self.tab) {
+            Tab::Pause { audio_clip, time } => {
+                let new_handle = audio_clip
+                    .play(self.host)
+                    .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
-            let on_done: ThreadsafeFunction<(), ErrorStrategy::Fatal> =
-                on_done.create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?;
-            new_handle.connect_done(move || {
-                on_done.call((), ThreadsafeFunctionCallMode::NonBlocking);
-            });
+                let on_done: ThreadsafeFunction<(), ErrorStrategy::Fatal> =
+                    on_done.create_threadsafe_function(0, |_ctx| Ok(vec![] as Vec<JsUnknown>))?;
+                new_handle.connect_done(move || {
+                    on_done.call((), ThreadsafeFunctionCallMode::NonBlocking);
+                });
 
-            let update_cb = self.update_cb.clone();
-            new_handle.connect_changed(move || {
-                update_cb.call((), ThreadsafeFunctionCallMode::NonBlocking);
-            });
+                let update_cb = self.update_cb.clone();
+                new_handle.connect_changed(move || {
+                    update_cb.call((), ThreadsafeFunctionCallMode::NonBlocking);
+                });
 
-            *handle = Some(new_handle);
+                new_handle.seek(time);
 
-            self.update_cb
-                .call((), ThreadsafeFunctionCallMode::NonBlocking);
-        }
+                Tab::Play {
+                    audio_clip,
+                    handle: new_handle,
+                }
+            }
+            tab => tab,
+        };
+
+        self.update_cb
+            .call((), ThreadsafeFunctionCallMode::NonBlocking);
 
         Ok(())
     }
@@ -259,13 +281,17 @@ impl UiState {
     }
 
     #[napi]
-    pub fn seek(&mut self, time_percent: f64) -> Result<()> {
-        if let Tab::Clip {
-            handle: Some(handle),
-            ..
-        } = &mut self.tab
-        {
-            handle.seek(time_percent);
+    pub fn seek(&mut self, time: f64) -> Result<()> {
+        match &mut self.tab {
+            Tab::Play { handle, .. } => {
+                handle.seek(time);
+            }
+            Tab::Pause {
+                time: paused_time, ..
+            } => {
+                *paused_time = time;
+            }
+            Tab::Record { .. } => {}
         }
 
         self.update_cb
@@ -276,24 +302,28 @@ impl UiState {
 
     #[napi]
     pub fn stop(&mut self) -> Result<()> {
-        match &mut self.tab {
-            Tab::Record { handle } => {
+        self.tab = match std::mem::take(&mut self.tab) {
+            Tab::Record { mut handle } => {
                 if let Some(handle) = handle.take() {
                     let mut audio_clip = handle.stop();
                     self.db
                         .save(&mut audio_clip)
                         .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
-                    self.tab = Tab::Clip {
+                    Tab::Pause {
                         audio_clip,
-                        handle: None,
-                    };
+                        time: 0.0,
+                    }
+                } else {
+                    Tab::Record { handle: None }
                 }
             }
-            Tab::Clip { handle, .. } => {
-                *handle = None;
-            }
-        }
+            Tab::Play { audio_clip, handle } => Tab::Pause {
+                audio_clip,
+                time: handle.time(),
+            },
+            Tab::Pause { audio_clip, time } => Tab::Pause { audio_clip, time },
+        };
 
         self.update_cb
             .call((), ThreadsafeFunctionCallMode::NonBlocking);
@@ -309,7 +339,7 @@ impl UiState {
         self.update_cb
             .call((), ThreadsafeFunctionCallMode::NonBlocking);
 
-        if let Tab::Clip { mut audio_clip, .. } = tab {
+        if let Tab::Play { mut audio_clip, .. } | Tab::Pause { mut audio_clip, .. } = tab {
             if let Some(id) = audio_clip.id {
                 self.db
                     .delete_by_id(id)
@@ -333,9 +363,9 @@ impl UiState {
                 .save(&mut audio_clip)
                 .map_err(|e| Error::from_reason(format!("{:?}", e)))?;
 
-            self.tab = Tab::Clip {
+            self.tab = Tab::Pause {
                 audio_clip,
-                handle: None,
+                time: 0.0, // TODO: remember time?
             };
 
             self.update_cb
@@ -351,7 +381,11 @@ impl UiState {
     pub fn rename_current_clip(&mut self, new_name: String) -> Result<()> {
         let clip_id;
 
-        if let Tab::Clip {
+        if let Tab::Pause {
+            audio_clip: AudioClip { id: Some(id), .. },
+            ..
+        }
+        | Tab::Play {
             audio_clip: AudioClip { id: Some(id), .. },
             ..
         } = &mut self.tab
@@ -378,7 +412,8 @@ impl UiState {
                 handle: Some(handle),
             } => Some(handle as &dyn ClipHandle),
             Tab::Record { handle: None } => None,
-            Tab::Clip { audio_clip, .. } => Some(audio_clip),
+            Tab::Play { audio_clip, .. } => Some(audio_clip),
+            Tab::Pause { audio_clip, .. } => Some(audio_clip),
         }
     }
 
@@ -422,6 +457,26 @@ impl UiState {
     }
 
     #[napi(getter)]
+    pub fn get_time(&self) -> f64 {
+        match &self.tab {
+            Tab::Record {
+                handle: Some(handle),
+            } => handle.time(),
+            Tab::Play { handle, .. } => handle.time(),
+            Tab::Pause { time, .. } => *time,
+            Tab::Record { handle: None } => 0f64,
+        }
+    }
+
+    #[napi(getter)]
+    pub fn get_duration(&self) -> f64 {
+        match self.clip() {
+            Some(clip) => (clip.num_samples() as f64) / (clip.sample_rate() as f64),
+            None => 0f64,
+        }
+    }
+
+    #[napi(getter)]
     pub fn get_time_start(&self) -> f32 {
         0.0
     }
@@ -441,12 +496,14 @@ impl UiState {
             Tab::Record {
                 handle: Some(_handle),
             } => {
+                // TODO: transcribe during recording
                 return Ok(None);
             }
             Tab::Record { handle: None } => {
                 return Ok(None);
             }
-            Tab::Clip { audio_clip, .. } => audio_clip as &AudioClip,
+            Tab::Play { audio_clip, .. } => audio_clip as &AudioClip,
+            Tab::Pause { audio_clip, .. } => audio_clip as &AudioClip,
         };
 
         let clip = clip.clone();
@@ -462,54 +519,9 @@ impl UiState {
     pub fn get_streaming(&self) -> bool {
         match &self.tab {
             Tab::Record { handle } => handle.is_some(),
-            Tab::Clip { handle, .. } => handle.is_some(),
+            Tab::Play { .. } => true,
+            Tab::Pause { .. } => false,
         }
-    }
-
-    fn stream_handle(&self) -> Option<&dyn StreamHandle> {
-        match &self.tab {
-            Tab::Record {
-                handle: Some(handle),
-            } => Some(handle),
-            Tab::Clip {
-                handle: Some(handle),
-                ..
-            } => Some(handle),
-            Tab::Record { handle: None } | Tab::Clip { handle: None, .. } => None,
-        }
-    }
-
-    #[napi(getter)]
-    pub fn get_time(&self) -> f64 {
-        if let Some(handle) = self.stream_handle() {
-            handle.time()
-        } else {
-            0.0
-        }
-    }
-
-    #[napi(getter)]
-    pub fn get_time_percent(&self) -> f64 {
-        if let Some(handle) = self.stream_handle() {
-            (handle.sample_rate() as f64) * handle.time() / (handle.samples() as f64)
-        } else {
-            0.0
-        }
-    }
-
-    #[napi(getter)]
-    pub fn get_duration(&self) -> f64 {
-        let clip = match &self.tab {
-            Tab::Record {
-                handle: Some(handle),
-            } => handle as &dyn ClipHandle,
-            Tab::Record { handle: None } => {
-                return 0.0;
-            }
-            Tab::Clip { audio_clip, .. } => audio_clip,
-        };
-
-        (clip.num_samples() as f64) / (clip.sample_rate() as f64)
     }
 
     #[napi]
@@ -538,9 +550,9 @@ impl UiState {
             .save(&mut audio_clip)
             .map_err(|err| Error::from_reason(format!("{:?}", err)))?;
 
-        self.tab = Tab::Clip {
+        self.tab = Tab::Pause {
             audio_clip,
-            handle: None,
+            time: 0f64,
         };
         self.update_cb
             .call((), ThreadsafeFunctionCallMode::NonBlocking);

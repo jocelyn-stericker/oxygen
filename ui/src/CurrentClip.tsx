@@ -35,9 +35,9 @@ export default function CurrentClip({
   timeStart: number;
   timeEnd: number;
 }) {
-  const [temporaryName, setTemporaryName] = useState(clip.name);
+  const [editedName, setEditedName] = useState(clip.name);
   useEffect(() => {
-    setTemporaryName(clip.name);
+    setEditedName(clip.name);
   }, [clip.name]);
 
   return (
@@ -46,16 +46,16 @@ export default function CurrentClip({
         <input
           data-testid="current-clip-name"
           className="self-center p-2 m-2 text-m font-bold overflow-ellipses overflow-hidden border-2 border-purple-200 rounded-md focus:border-purple-900 outline-purple-900 text-purple-900 flex-grow transition-all"
-          value={temporaryName}
+          value={editedName}
           onChange={(ev) => {
-            setTemporaryName(ev.currentTarget.value);
+            setEditedName(ev.currentTarget.value);
           }}
           onBlur={() => {
-            const name = temporaryName.trim();
+            const name = editedName.trim();
             if (name !== "") {
               onRename(name);
             }
-            setTemporaryName(clip.name);
+            setEditedName(clip.name);
           }}
         />
         <button
