@@ -3,7 +3,7 @@ import cx from "classnames";
 import { RenderMode } from "oxygen-core";
 
 import { Record, Stop } from "./icons";
-import AudioView from "./audio_view";
+import AudioView from "./AudioView";
 
 export default function RecordTab({
   drawCurrentClip,

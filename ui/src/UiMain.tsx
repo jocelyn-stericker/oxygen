@@ -2,10 +2,10 @@ import { RenderMode, UiState } from "oxygen-core";
 import React, { useState, useCallback, useRef, useReducer } from "react";
 import cx from "classnames";
 
-import Toaster, { ToasterInterface } from "./toaster";
-import ClipList from "./clip_list";
-import RecordTab from "./record_tab";
-import CurrentClip from "./current_clip";
+import Toaster, { ToasterInterface } from "./Toaster";
+import ClipList from "./ClipList";
+import RecordTab from "./RecordTab";
+import CurrentClip from "./CurrentClip";
 
 function nativeLog(level: string, log: string) {
   if (level === "error") {
@@ -48,8 +48,8 @@ export default function Main({ inMemory }: { inMemory: boolean }) {
   const handleStop = useCallback(() => uiState.stop(), [uiState]);
 
   const handleSeek = useCallback(
-    (timePercent: number) => {
-      uiState.seek(timePercent);
+    (time: number) => {
+      uiState.seek(time);
     },
     [uiState]
   );

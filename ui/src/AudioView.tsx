@@ -123,7 +123,9 @@ export default function AudioView({
           ref={canvas}
           onClick={(ev) => {
             const rect = ev.currentTarget.getBoundingClientRect();
-            onSeek((ev.clientX - rect.left) / rect.width);
+            onSeek(
+              ((ev.clientX - rect.left) / rect.width) * (timeEnd - timeStart)
+            );
           }}
         />
         <div

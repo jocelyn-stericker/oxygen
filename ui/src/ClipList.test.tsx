@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react";
 
-import ClipList from "./clip_list";
+import ClipList from "./ClipList";
 
 describe("ClipList", () => {
   it("renders placeholder text when there are no clips", () => {

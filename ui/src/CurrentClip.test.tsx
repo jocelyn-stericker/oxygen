@@ -2,7 +2,7 @@ import React from "react";
 import { RenderMode } from "oxygen-core";
 import { render, fireEvent } from "@testing-library/react";
 
-import CurrentClip from "./current_clip";
+import CurrentClip from "./CurrentClip";
 
 describe("CurrentClip", () => {
   it("renders playing state and can be stopped", () => {
